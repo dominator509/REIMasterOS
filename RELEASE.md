@@ -130,3 +130,21 @@ Monitor for at least the defined release window:
 - Hosted LLM spend.
 - Tenant isolation alerts.
 - Smoke test failures.
+
+## EP-010 Release Notes (v0.0.0)
+
+### Artifacts
+
+- `Dockerfile` — API service container
+- `apps/web/Dockerfile` — Web dashboard container
+- `infra/compose/` — 4 deployment profiles
+- `infra/helm/` — Kubernetes skeleton
+- `.github/workflows/ci.yml` — CI pipeline
+
+### Verification
+
+```bash
+sh scripts/verify.sh  # Full pipeline
+pnpm smoke            # Smoke test
+sh scripts/production-readiness-check.sh  # Readiness audit
+```

@@ -1,0 +1,41 @@
+name: rei-os-hybrid
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: rei_os
+      POSTGRES_USER: rei
+      POSTGRES_PASSWORD: rei
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports: ["3001:3001"]
+    environment:
+      NODE_ENV: production
+      APP_ENV: staging
+      DATABASE_URL: postgresql://rei:rei@postgres:5432/rei_os
+      REDIS_URL: redis://redis:6379/0
+      SEARCH_PROVIDER: disabled
+      OBJECT_STORAGE_PROVIDER: local
+    depends_on: [postgres, redis]
+
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    ports: ["3000:3000"]
+    environment:
+      NODE_ENV: production
+      API_BASE_URL: http://api:3001
+    depends_on: [api]
+
+volumes:
+  pgdata:

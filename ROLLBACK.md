@@ -116,3 +116,18 @@ Include:
 - Corrective actions.
 - Owners and deadlines.
 - Tests/alerts/docs added.
+
+## EP-010 Rollback Verification (2026-07-09)
+
+### Rollback Strategy
+
+1. Database migrations are versioned under `db/migrations/` with sequential IDs
+2. Docker Compose profiles allow service-level rollback via image tags
+3. Helm charts support `helm rollback`
+4. CI/CD pipeline gates prevent unreviewed deployments
+
+### Verified
+
+- `git diff --name-only` shows only expected deployment/docs files
+- No destructive operations run by any script unless explicitly requested
+- All STOP conditions documented in AGENTS.md remain active

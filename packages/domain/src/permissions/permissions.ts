@@ -1,0 +1,115 @@
+/** Permission constants — shared by contracts and domain. */
+
+export const PERMISSIONS = {
+  PROPERTY_READ: "property:read",
+  PROPERTY_WRITE: "property:write",
+  PROPERTY_DELETE: "property:delete",
+  CONTACT_READ: "contact:read",
+  CONTACT_WRITE: "contact:write",
+  CONTACT_DELETE: "contact:delete",
+  LEAD_READ: "lead:read",
+  LEAD_WRITE: "lead:write",
+  LEAD_IMPORT: "lead:import",
+  CAMPAIGN_READ: "campaign:read",
+  CAMPAIGN_CREATE: "campaign:create",
+  CAMPAIGN_LAUNCH: "campaign:launch",
+  TASK_READ: "task:read",
+  TASK_WRITE: "task:write",
+  OFFER_CREATE: "offer:create",
+  OFFER_SUBMIT: "offer:submit",
+  COMPLIANCE_READ: "compliance:read",
+  COMPLIANCE_OVERRIDE: "compliance:override",
+  APPROVAL_READ: "approval:read",
+  APPROVAL_GRANT: "approval:grant",
+  PROVIDER_MANAGE: "provider:manage",
+  AI_QUERY: "ai:query",
+  AI_ACTION: "ai:action",
+  ADMIN_ACCESS: "admin:access",
+  EXPORT_DATA: "export:data",
+  IMPORT_DATA: "import:data",
+} as const;
+
+export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+
+export const ROLES = {
+  ADMIN: "admin",
+  MANAGER: "manager",
+  MEMBER: "member",
+  VIEWER: "viewer",
+  AGENT: "agent",
+} as const;
+
+export type Role = (typeof ROLES)[keyof typeof ROLES];
+
+/** Default role → permission mapping. */
+export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
+  admin: Object.values(PERMISSIONS),
+  manager: [
+    PERMISSIONS.PROPERTY_READ,
+    PERMISSIONS.PROPERTY_WRITE,
+    PERMISSIONS.CONTACT_READ,
+    PERMISSIONS.CONTACT_WRITE,
+    PERMISSIONS.LEAD_READ,
+    PERMISSIONS.LEAD_WRITE,
+    PERMISSIONS.LEAD_IMPORT,
+    PERMISSIONS.CAMPAIGN_READ,
+    PERMISSIONS.CAMPAIGN_CREATE,
+    PERMISSIONS.CAMPAIGN_LAUNCH,
+    PERMISSIONS.TASK_READ,
+    PERMISSIONS.TASK_WRITE,
+    PERMISSIONS.OFFER_CREATE,
+    PERMISSIONS.OFFER_SUBMIT,
+    PERMISSIONS.COMPLIANCE_READ,
+    PERMISSIONS.APPROVAL_READ,
+    PERMISSIONS.PROVIDER_MANAGE,
+    PERMISSIONS.AI_QUERY,
+    PERMISSIONS.EXPORT_DATA,
+    PERMISSIONS.IMPORT_DATA,
+  ],
+  member: [
+    PERMISSIONS.PROPERTY_READ,
+    PERMISSIONS.PROPERTY_WRITE,
+    PERMISSIONS.CONTACT_READ,
+    PERMISSIONS.CONTACT_WRITE,
+    PERMISSIONS.LEAD_READ,
+    PERMISSIONS.LEAD_WRITE,
+    PERMISSIONS.CAMPAIGN_READ,
+    PERMISSIONS.TASK_READ,
+    PERMISSIONS.TASK_WRITE,
+    PERMISSIONS.OFFER_CREATE,
+    PERMISSIONS.COMPLIANCE_READ,
+    PERMISSIONS.APPROVAL_READ,
+    PERMISSIONS.AI_QUERY,
+    PERMISSIONS.IMPORT_DATA,
+    PERMISSIONS.EXPORT_DATA,
+  ],
+  viewer: [
+    PERMISSIONS.PROPERTY_READ,
+    PERMISSIONS.CONTACT_READ,
+    PERMISSIONS.LEAD_READ,
+    PERMISSIONS.CAMPAIGN_READ,
+    PERMISSIONS.TASK_READ,
+    PERMISSIONS.COMPLIANCE_READ,
+    PERMISSIONS.APPROVAL_READ,
+  ],
+  agent: [
+    PERMISSIONS.PROPERTY_READ,
+    PERMISSIONS.CONTACT_READ,
+    PERMISSIONS.LEAD_READ,
+    PERMISSIONS.CAMPAIGN_READ,
+    PERMISSIONS.CAMPAIGN_LAUNCH,
+    PERMISSIONS.TASK_READ,
+    PERMISSIONS.TASK_WRITE,
+    PERMISSIONS.OFFER_CREATE,
+    PERMISSIONS.OFFER_SUBMIT,
+    PERMISSIONS.COMPLIANCE_READ,
+    PERMISSIONS.APPROVAL_READ,
+    PERMISSIONS.AI_QUERY,
+    PERMISSIONS.EXPORT_DATA,
+    PERMISSIONS.IMPORT_DATA,
+  ],
+};
+
+export function hasPermission(role: Role, permission: Permission): boolean {
+  return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+}

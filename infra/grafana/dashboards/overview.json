@@ -1,0 +1,24 @@
+{
+  "title": "REI-OS Overview",
+  "panels": [
+    {
+      "title": "API Request Rate",
+      "type": "graph",
+      "targets": [{ "expr": "rate(api_request_count[5m])" }]
+    },
+    {
+      "title": "Compliance Checks",
+      "type": "stat",
+      "targets": [{ "expr": "compliance_check_count" }]
+    },
+    {
+      "title": "AI Cache Hit Rate",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "rate(ai_cache_hit_count[5m]) / (rate(ai_cache_hit_count[5m]) + rate(ai_cache_miss_count[5m]))"
+        }
+      ]
+    }
+  ]
+}

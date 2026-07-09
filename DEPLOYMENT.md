@@ -170,3 +170,30 @@ After production deployment:
 - Check logs for redaction.
 - Confirm alerts are active.
 - Record verification outcome in release notes.
+
+## EP-010 Updates (2026-07-09)
+
+### Quick Deploy
+
+```bash
+# Solo budget mode (minimal)
+docker compose -f infra/compose/solo-budget.yml up -d
+
+# Hybrid cheap mode (API + Web + DB + Redis)
+docker compose -f infra/compose/hybrid-cheap.yml up -d
+
+# Vendor fast mode (full services)
+docker compose -f infra/compose/vendor-fast.yml up -d
+
+# Enterprise self-hosted (with monitoring)
+docker compose -f infra/compose/enterprise-self-host.yml up -d
+```
+
+### Build from source
+
+```bash
+pnpm install
+pnpm build
+pnpm test:unit
+sh scripts/verify.sh
+```

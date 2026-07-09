@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: "rei-os-api"
+    static_configs:
+      - targets: ["api:3001"]
+  - job_name: "rei-os-web"
+    static_configs:
+      - targets: ["web:3000"]
