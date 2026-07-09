@@ -1,0 +1,13 @@
+{
+  "theme": "obsidian",
+  "cssTheme": "",
+  "translucency": false,
+  "baseFontSize": 15,
+  "accentColor": "",
+  "showViewHeader": true,
+  "nativeMenus": false,
+  "showRibbon": true,
+  "interfaceFontFamily": "",
+  "textFontFamily": "",
+  "monospaceFontFamily": "JetBrains Mono, Fira Code, Consolas, monospace"
+}

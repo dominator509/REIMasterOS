@@ -1,0 +1,21 @@
+# Release Checklist
+
+- [ ] Release type selected.
+- [ ] Version selected.
+- [ ] Changelog updated.
+- [ ] Release notes drafted.
+- [ ] Active ExecPlans complete.
+- [ ] Specs/docs updated.
+- [ ] `sh scripts/verify.sh` passes.
+- [ ] `sh scripts/production-readiness-check.sh` passes for release candidate.
+- [ ] Migrations reviewed.
+- [ ] Secrets/config reviewed.
+- [ ] Third-party notices generated where required.
+- [ ] Artifacts built.
+- [ ] Staging deployed.
+- [ ] Staging smoke test passed.
+- [ ] Observability verified.
+- [ ] Rollback path verified.
+- [ ] Production deployment explicitly approved.
+- [ ] Production smoke test passed.
+- [ ] Post-release monitoring active.

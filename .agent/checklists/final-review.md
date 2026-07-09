@@ -1,0 +1,23 @@
+# Final Review Checklist
+
+- [ ] All active ExecPlan milestones complete.
+- [ ] Acceptance criteria pass.
+- [ ] Required validation commands pass.
+- [ ] `sh scripts/verify.sh` run or justified narrower validation recorded.
+- [ ] `sh scripts/production-readiness-check.sh` run when applicable.
+- [ ] `git diff --name-only` run.
+- [ ] Changed files compared with ExecPlan expected files.
+- [ ] Extra files justified in Decision Log.
+- [ ] Docs updated.
+- [ ] Tests added/updated.
+- [ ] No secrets committed.
+- [ ] No production data committed.
+- [ ] No raw DNC data exposed.
+- [ ] No hidden prefixes in user-visible files/logs/tests.
+- [ ] No live provider calls in default tests.
+- [ ] Security/compliance implications reviewed.
+- [ ] Accessibility reviewed for UI changes.
+- [ ] Observability reviewed for runtime changes.
+- [ ] Remaining risks documented.
+- [ ] Outcomes & Retrospective updated.
+- [ ] Final response includes required AGENTS.md summary fields.

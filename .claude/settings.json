@@ -1,0 +1,56 @@
+{
+  "permissions": {
+    "defaultMode": "auto",
+    "allow": [
+      "Bash(sh scripts/*)",
+      "Bash(pnpm *)",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(which *)",
+      "Bash(rtk *)",
+      "Bash(docker compose *)",
+      "Bash(npx *)",
+      "Bash(tsx *)",
+      "Bash(cargo *)",
+      "Bash(go *)",
+      "Bash(uv *)",
+      "Bash(poetry *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(dropdb *)",
+      "Bash(DROP DATABASE *)",
+      "Bash(TRUNCATE *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rtk hook claude"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh scripts/format-check.sh 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "deepseek-v4-flash",
+  "autoUpdatesChannel": "latest",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "auto"
+}

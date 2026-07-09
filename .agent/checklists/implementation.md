@@ -1,0 +1,22 @@
+# Implementation Checklist
+
+- [ ] Read `AGENTS.md`.
+- [ ] Read `COMMANDS.md`.
+- [ ] Read `.agent/PLANS.md`.
+- [ ] Read active ExecPlan.
+- [ ] Read relevant specs.
+- [ ] Inspect existing repository patterns before editing.
+- [ ] Confirm commands, imports, APIs, environment variables, tables, routes, and config keys from files.
+- [ ] Implement one milestone at a time.
+- [ ] Do not broaden scope.
+- [ ] Do not perform broad refactors.
+- [ ] Do not add dependencies without checking existing dependencies and recording decision.
+- [ ] Do not call live providers in default development/test flows.
+- [ ] Validate each milestone with listed command.
+- [ ] Update ExecPlan Progress after each milestone.
+- [ ] Record surprises.
+- [ ] Record decisions.
+- [ ] Continue unless a STOP condition applies.
+- [ ] Apply bounded retry on failures.
+- [ ] Keep fixture data synthetic.
+- [ ] Keep secrets out of files/logs/tests.
