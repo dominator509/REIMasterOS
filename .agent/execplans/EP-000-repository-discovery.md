@@ -90,7 +90,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Expected result:** Diff contains only discovery docs unless repository evidence required command/architecture/assumption updates.
 - **Recovery instruction:** If unexpected application files changed, revert those unrelated changes and record why.
 
-
 ## 9. Concrete Steps
 
 ### Milestone 1 Steps: Inventory repository files and git state
@@ -124,7 +123,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Confirm next plan is EP-001 for greenfield.
 4. Run `git diff --name-only`.
 5. Update Outcomes & Retrospective.
-
 
 ## 10. Validation and Acceptance
 
@@ -161,23 +159,29 @@ General recovery:
 
 Initial state from blueprint generation: greenfield assumption recorded; execute this plan to confirm.
 
-- [ ] Milestone 1: Inventory repository files and git state — validation `sh scripts/preflight.sh` passed and result recorded.
-- [ ] Milestone 2: Detect stack, package manager, and commands — validation `sh scripts/preflight.sh` passed and result recorded.
-- [ ] Milestone 3: Inspect CI, environment, and architecture evidence — validation `sh scripts/preflight.sh` passed and result recorded.
-- [ ] Milestone 4: Record risks and next active plan — validation `git diff --name-only` passed and result recorded.
+- [x] Milestone 1: Inventory repository files and git state — validation `sh scripts/preflight.sh` passed: `preflight: ok` (expected warnings about missing package.json and .env.local — greenfield normal). 97 files in repo, all blueprint docs + tool configs. No application code.
+- [x] Milestone 2: Detect stack, package manager, and commands — validation `sh scripts/preflight.sh` passed. Confirmed: no package.json, pnpm-workspace.yaml, turbo.json, pyproject.toml, go.mod, or Cargo.toml. All A-001/A-002 greenfield assumptions confirmed. COMMANDS.md and ASSUMPTIONS.md need no changes.
+- [x] Milestone 3: Inspect CI, environment, and architecture evidence — validation `sh scripts/preflight.sh` passed. No .github/, .gitlab-ci.yml, .env files, or app directories. ARCHITECTURE.md, ENVIRONMENT.md, ASSUMPTIONS.md all match greenfield state. No conflicting architecture.
+- [x] Milestone 4: Record risks and next active plan — validation `git diff --name-only` passed. Only EP-000 progress updated. Handoff to EP-001.
 
 ## 13. Surprises & Discoveries
 
-- 2026-07-07: Blueprint generated for greenfield repository. Actual repository contents must be confirmed by running discovery commands.
+- 2026-07-07: Blueprint generated for greenfield repository.
+- 2026-07-08: Discovery confirmed 97 files — all blueprint docs + tool configs (.claude/, .serena/, .obsidian/). Zero application code, zero package files, zero CI/CD.
+- 2026-07-08: Git repo not initialized at start — initialized during discovery (baseline commit created).
+- 2026-07-08: .claude/, .serena/, .obsidian/ already configured — tool ecosystem ready before first line of code.
 
 ## 14. Decision Log
 
 - 2026-07-07: Default decision is to proceed to EP-001 after discovery if repository is blueprint-only.
+- 2026-07-08: Git initialized during EP-000 to enable `git diff` validation. No application files existed to disturb.
+- 2026-07-08: All 20 assumptions (A-001 through A-020) confirmed — no COMMANDS.md, ARCHITECTURE.md, or ASSUMPTIONS.md changes needed.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: **Complete**.
+- Completed milestones: 4/4.
+- Validation summary: `sh scripts/preflight.sh` → `preflight: ok`. `git diff --name-only` → only EP-000 updated.
+- Changed files summary: Only `.agent/execplans/EP-000-repository-discovery.md` (progress updates).
+- Remaining risks: None. Greenfield state fully confirmed. Handoff to EP-001 is clean.
+- Next ExecPlan: **EP-001-foundation.md** — create monorepo skeleton, pnpm workspace, package.json scripts, and make placeholder scripts operational.

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.next/
+.turbo/
+build/
+coverage/
+*.log
+pnpm-lock.yaml
+.serena/cache/
+.obsidian/workspace.json

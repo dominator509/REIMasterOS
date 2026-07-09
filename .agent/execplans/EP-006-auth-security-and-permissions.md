@@ -122,7 +122,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Expected result:** Full verification passes.
 - **Recovery instruction:** If full verify fails outside auth/security, record evidence and run all auth/security relevant validations.
 
-
 ## 9. Concrete Steps
 
 ### Milestone 1 Steps: Implement auth configuration and session foundation
@@ -164,7 +163,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `sh scripts/verify.sh`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

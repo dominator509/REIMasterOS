@@ -68,7 +68,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Create request/response schemas for core API workflows.
 - **Files to read:** SPEC-003-api-contracts.md, SPEC-006-error-handling.md, packages/contracts
-- **Files to change:** packages/contracts/src/api/**, packages/contracts/src/errors/**, packages/contracts/src/index.ts, packages/contracts/src/__tests__/**
+- **Files to change:** packages/contracts/src/api/**, packages/contracts/src/errors/**, packages/contracts/src/index.ts, packages/contracts/src/**tests**/**
 - **Exact edits expected:** Add schemas for response envelope, errors, properties, lead lists, tasks, activities, compliance verdicts, approvals, provider health, AI chat shell, and imports.
 - **Validation command:** `sh scripts/test-unit.sh`
 - **Expected result:** Contract schema tests pass.
@@ -114,7 +114,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Expected result:** Full verification passes.
 - **Recovery instruction:** If E2E/UI not implemented, run API relevant commands and record remaining out-of-scope validations.
 
-
 ## 9. Concrete Steps
 
 ### Milestone 1 Steps: Define shared API contracts
@@ -156,7 +155,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `sh scripts/verify.sh`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

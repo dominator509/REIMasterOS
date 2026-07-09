@@ -112,7 +112,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Expected result:** Full verification passes.
 - **Recovery instruction:** If full verify fails outside UI, run E2E/accessibility relevant commands and record remaining blockers.
 
-
 ## 9. Concrete Steps
 
 ### Milestone 1 Steps: Create dashboard shell and navigation
@@ -154,7 +153,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `sh scripts/verify.sh`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

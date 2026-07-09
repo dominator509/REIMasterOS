@@ -18,12 +18,7 @@
       "Bash(uv *)",
       "Bash(poetry *)"
     ],
-    "deny": [
-      "Bash(rm -rf *)",
-      "Bash(dropdb *)",
-      "Bash(DROP DATABASE *)",
-      "Bash(TRUNCATE *)"
-    ]
+    "deny": ["Bash(rm -rf *)", "Bash(dropdb *)", "Bash(DROP DATABASE *)", "Bash(TRUNCATE *)"]
   },
   "hooks": {
     "PreToolUse": [

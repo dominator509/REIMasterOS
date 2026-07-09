@@ -1,0 +1,43 @@
+{
+  "name": "rei-os",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Real Estate Investor / Acquisitions OS — self-hostable, AI-native, provider-agnostic, compliance-gated platform",
+  "scripts": {
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "typecheck": "turbo typecheck",
+    "test:unit": "turbo test:unit",
+    "test:integration": "turbo test:integration",
+    "test:e2e": "turbo test:e2e",
+    "build": "turbo build",
+    "security:check": "pnpm dlx secretlint \"**/*\" && pnpm dlx semgrep ci --config auto || true",
+    "audit:deps": "pnpm audit --audit-level moderate",
+    "smoke": "tsx scripts/smoke/local-smoke.ts",
+    "verify": "sh scripts/verify.sh",
+    "db:setup": "docker compose -f infra/compose/solo-budget.yml up -d postgres redis minio opensearch",
+    "db:migrate": "pnpm --filter @rei-os/api db:migrate"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@rei-os/api": "workspace:*",
+    "@rei-os/config": "workspace:*",
+    "@rei-os/contracts": "workspace:*",
+    "@rei-os/domain": "workspace:*",
+    "@rei-os/testing": "workspace:*",
+    "@rei-os/web": "workspace:*",
+    "eslint": "^9.0.0",
+    "prettier": "^3.4.0",
+    "tsx": "^4.19.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}

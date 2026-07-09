@@ -57,19 +57,19 @@ Required health checks after implementation:
 
 ## Common Failure Modes
 
-| Failure | Likely Cause | First Diagnostic | Safe Mitigation |
-|---|---|---|---|
-| API unhealthy | Config, DB, migrations, dependency outage | Check `/health/dependencies` and logs | Roll back config/app or restore dependency |
-| Dashboard loads but data empty | API error, auth tenant scope, search projection lag | Check API logs and network response | Rebuild projection or fix tenant scope |
-| Search stale | Projection worker stopped | Check queue lag and worker logs | Restart worker and rebuild projection |
-| Campaign blocked | Missing DNC/consent/approval/provider config | Check compliance verdict/audit | Resolve prerequisites; do not bypass |
-| Provider sends failing | Credential, quota, webhook, vendor outage | Check provider health dashboard | Switch provider/fallback if configured |
-| Email deliverability issue | SPF/DKIM/DMARC/provider reputation | Run checker and provider logs | Pause campaign; fix DNS/provider |
-| Direct mail batch failed | PDF render, address validation, provider error | Check batch manifest and artifacts | Regenerate synthetic/test batch first |
-| Voice latency high | STT/TTS/LLM route, SIP/LiveKit path, worker lag | Check voice latency metrics | Route local Hermes, reduce context, pause outbound |
-| AI cache hit rate low | Prefix drift, model change, schema change, cache cold | Check prefix hash/version metrics | Run cache warmup worker |
-| Hidden prefix leakage | Sanitizer regression | Run sanitizer tests immediately | Disable AI surface until fixed |
-| Cross-tenant access alert | Tenant scoping bug | Stop affected service, inspect logs/tests | Patch, verify, notify per incident process |
+| Failure                        | Likely Cause                                          | First Diagnostic                          | Safe Mitigation                                    |
+| ------------------------------ | ----------------------------------------------------- | ----------------------------------------- | -------------------------------------------------- |
+| API unhealthy                  | Config, DB, migrations, dependency outage             | Check `/health/dependencies` and logs     | Roll back config/app or restore dependency         |
+| Dashboard loads but data empty | API error, auth tenant scope, search projection lag   | Check API logs and network response       | Rebuild projection or fix tenant scope             |
+| Search stale                   | Projection worker stopped                             | Check queue lag and worker logs           | Restart worker and rebuild projection              |
+| Campaign blocked               | Missing DNC/consent/approval/provider config          | Check compliance verdict/audit            | Resolve prerequisites; do not bypass               |
+| Provider sends failing         | Credential, quota, webhook, vendor outage             | Check provider health dashboard           | Switch provider/fallback if configured             |
+| Email deliverability issue     | SPF/DKIM/DMARC/provider reputation                    | Run checker and provider logs             | Pause campaign; fix DNS/provider                   |
+| Direct mail batch failed       | PDF render, address validation, provider error        | Check batch manifest and artifacts        | Regenerate synthetic/test batch first              |
+| Voice latency high             | STT/TTS/LLM route, SIP/LiveKit path, worker lag       | Check voice latency metrics               | Route local Hermes, reduce context, pause outbound |
+| AI cache hit rate low          | Prefix drift, model change, schema change, cache cold | Check prefix hash/version metrics         | Run cache warmup worker                            |
+| Hidden prefix leakage          | Sanitizer regression                                  | Run sanitizer tests immediately           | Disable AI surface until fixed                     |
+| Cross-tenant access alert      | Tenant scoping bug                                    | Stop affected service, inspect logs/tests | Patch, verify, notify per incident process         |
 
 ## Troubleshooting
 

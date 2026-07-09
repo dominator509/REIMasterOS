@@ -1,9 +1,13 @@
 @RTK.md
 
 # ═══════════════════════════════════════════════════════════
+
 # CACHE ANCHOR — NEVER CHANGE THIS SECTION
+
 # DeepSeek prompt cache boundary. Every byte above the
+
 # "EDITABLE SECTION" marker is cache fuel. Edit below only.
+
 # ═══════════════════════════════════════════════════════════
 
 ## Project Identity
@@ -31,14 +35,14 @@ work without mandatory paid vendors.
 
 Six-layer paradigm. Any architectural change must go through an ADR:
 
-| Layer | Name | Key Rule |
-|-------|------|----------|
-| 1 | Experience & Agent Surfaces | Next.js dashboard/PWA, Telegram, Voice, Mobile |
-| 2 | API/BFF & Application Services | NestJS API/BFF, request validation, auth hooks, WS/SSE |
-| 3 | Domain & Policy Core | **Pure TypeScript — NO framework, DB, vendor, UI, or network imports** |
-| 4 | Data/Search/Storage | PostgreSQL/PostGIS (authoritative), OpenSearch (projections), Redis (cache/queues), S3-compatible (artifacts) |
-| 5 | Provider, Worker, MCP & AI | Adapters, workers, MCP gateway, LLM gateway (Hermes/DeepSeek hybrid) |
-| 6 | Platform, Security & Observability | Docker Compose, K8s/Helm, OTEL/Prometheus/Grafana/Loki/Tempo |
+| Layer | Name                               | Key Rule                                                                                                      |
+| ----- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1     | Experience & Agent Surfaces        | Next.js dashboard/PWA, Telegram, Voice, Mobile                                                                |
+| 2     | API/BFF & Application Services     | NestJS API/BFF, request validation, auth hooks, WS/SSE                                                        |
+| 3     | Domain & Policy Core               | **Pure TypeScript — NO framework, DB, vendor, UI, or network imports**                                        |
+| 4     | Data/Search/Storage                | PostgreSQL/PostGIS (authoritative), OpenSearch (projections), Redis (cache/queues), S3-compatible (artifacts) |
+| 5     | Provider, Worker, MCP & AI         | Adapters, workers, MCP gateway, LLM gateway (Hermes/DeepSeek hybrid)                                          |
+| 6     | Platform, Security & Observability | Docker Compose, K8s/Helm, OTEL/Prometheus/Grafana/Loki/Tempo                                                  |
 
 **Domain purity**: packages/domain/ must never import from: `@nestjs/*`, `next/*`, `typeorm/*`,
 `pg/*`, any vendor SDK, any provider SDK, any UI library, `express`, `fastify`, `socket.io`.
@@ -86,6 +90,7 @@ Six-layer paradigm. Any architectural change must go through an ADR:
 ## STOP Conditions (immutable)
 
 Stop autonomously and report the blocker ONLY when:
+
 - Missing: secret, credential, paid service, external account, DNC credential, MLS license,
   property-data license, telephony, SMS, postage/direct-mail, or hosted AI key with no
   local/manual fallback specified in active ExecPlan
@@ -97,22 +102,22 @@ Stop autonomously and report the blocker ONLY when:
 
 ## Tech Stack (immutable)
 
-| Component | Tech | Notes |
-|-----------|------|-------|
-| Default PM | pnpm | Monorepo root |
-| Python PM | uv or Poetry | Only after Python service created |
-| Go PM | Go modules | Per-service directory |
-| Rust PM | Cargo | Per-service directory |
-| API/BFF | NestJS | TypeScript |
-| Web | Next.js | TypeScript, PWA |
-| Domain | TypeScript | Pure, no framework imports |
-| Primary DB | PostgreSQL + PostGIS | Authoritative records |
-| Search | OpenSearch | Projections |
-| Cache | Redis | Queues, rate limits |
-| Storage | S3-compatible (MinIO) | Artifacts |
-| Observability | OTEL, Prometheus, Grafana, Loki, Tempo | |
-| AI Gateway | Python | Hermes/local + DeepSeek/hybrid |
-| Container | Docker Compose (dev), K8s/Helm (prod) | |
+| Component     | Tech                                   | Notes                             |
+| ------------- | -------------------------------------- | --------------------------------- |
+| Default PM    | pnpm                                   | Monorepo root                     |
+| Python PM     | uv or Poetry                           | Only after Python service created |
+| Go PM         | Go modules                             | Per-service directory             |
+| Rust PM       | Cargo                                  | Per-service directory             |
+| API/BFF       | NestJS                                 | TypeScript                        |
+| Web           | Next.js                                | TypeScript, PWA                   |
+| Domain        | TypeScript                             | Pure, no framework imports        |
+| Primary DB    | PostgreSQL + PostGIS                   | Authoritative records             |
+| Search        | OpenSearch                             | Projections                       |
+| Cache         | Redis                                  | Queues, rate limits               |
+| Storage       | S3-compatible (MinIO)                  | Artifacts                         |
+| Observability | OTEL, Prometheus, Grafana, Loki, Tempo |                                   |
+| AI Gateway    | Python                                 | Hermes/local + DeepSeek/hybrid    |
+| Container     | Docker Compose (dev), K8s/Helm (prod)  |                                   |
 
 ## Domain Glossary (immutable)
 
@@ -147,12 +152,12 @@ Core domain concepts. These map to entities in `packages/domain/`:
 
 Four tools work together cohesively. See `TOOLS.md` for full documentation:
 
-| Tool | Role | Config Dir | Key Principle |
-|------|------|------------|---------------|
-| Claude Code | Agentic coding harness | `.claude/` | Follow AGENTS.md workflow |
-| Serena | Code intelligence & symbolic editing | `.serena/` | Prefer over Grep/Read for code |
-| Obsidian | Knowledge management & docs | `.obsidian/` | Open repo as vault for wiki nav |
-| RTK | Token-optimized CLI proxy | Global hook | Transparent 60-90% token savings |
+| Tool        | Role                                 | Config Dir   | Key Principle                    |
+| ----------- | ------------------------------------ | ------------ | -------------------------------- |
+| Claude Code | Agentic coding harness               | `.claude/`   | Follow AGENTS.md workflow        |
+| Serena      | Code intelligence & symbolic editing | `.serena/`   | Prefer over Grep/Read for code   |
+| Obsidian    | Knowledge management & docs          | `.obsidian/` | Open repo as vault for wiki nav  |
+| RTK         | Token-optimized CLI proxy            | Global hook  | Transparent 60-90% token savings |
 
 **Serena rule**: For code exploration, prefer `get_symbols_overview` → `find_symbol` with
 `include_body=True` over built-in Read/Grep. For edits, prefer `replace_symbol_body` /
@@ -160,9 +165,13 @@ Four tools work together cohesively. See `TOOLS.md` for full documentation:
 appropriate for the task.
 
 # ═══════════════════════════════════════════════════════════
+
 # EDITABLE SECTION — changes below this line invalidate
+
 # cache from the edit point down. Keep edits minimal.
+
 # Most-static content (rarely changes) first within this section.
+
 # ═══════════════════════════════════════════════════════════
 
 ## Agent Protocol (rarely changes)
@@ -195,12 +204,12 @@ This repo is governed by `AGENTS.md`. Every coding session must:
 
 ## Available Slash Commands
 
-| Command | Purpose |
-|---------|---------|
-| `/execplan` | List, show active, or create ExecPlans |
-| `/verify` | Run verification suite (quick, full, or preflight) |
-| `/docs` | Search or update project documentation |
-| `/rtk` | Check RTK savings and optimization status |
+| Command     | Purpose                                            |
+| ----------- | -------------------------------------------------- |
+| `/execplan` | List, show active, or create ExecPlans             |
+| `/verify`   | Run verification suite (quick, full, or preflight) |
+| `/docs`     | Search or update project documentation             |
+| `/rtk`      | Check RTK savings and optimization status          |
 
 ## Current Phase
 

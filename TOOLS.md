@@ -33,6 +33,7 @@ This repository is optimized for four tools that work together cohesively.
 - `commands/` — Custom slash commands (`/execplan`, `/verify`, `/docs`, `/rtk`)
 
 ### Key integrations:
+
 - PreToolUse hook routes all Bash commands through RTK
 - Serena MCP tools available for code intelligence
 - Linear MCP integration for issue tracking
@@ -46,20 +47,22 @@ This repository is optimized for four tools that work together cohesively.
 - Uses LSP backends for TypeScript, Python, Rust, Go, Bash, and more
 
 ### Key integrations:
+
 - MCP tools available directly in Claude Code (`mcp__serena__*`)
 - Memories complement Claude Code's context window
 - Symbolic editing (`replace_symbol_body`, `find_symbol`) reduces token usage vs full-file reads
 
 ### When to use Serena vs built-in tools:
-| Task | Use |
-|------|-----|
-| Discover what's in a file | Serena `get_symbols_overview` |
-| Read a specific function/class | Serena `find_symbol` with `include_body` |
-| Find all references to a symbol | Serena `find_referencing_symbols` |
-| Edit a whole function/class | Serena `replace_symbol_body` |
-| Edit a few lines | Serena `replace_content` |
-| Find files by name | Built-in Glob |
-| Search for text patterns | Built-in Grep |
+
+| Task                            | Use                                      |
+| ------------------------------- | ---------------------------------------- |
+| Discover what's in a file       | Serena `get_symbols_overview`            |
+| Read a specific function/class  | Serena `find_symbol` with `include_body` |
+| Find all references to a symbol | Serena `find_referencing_symbols`        |
+| Edit a whole function/class     | Serena `replace_symbol_body`             |
+| Edit a few lines                | Serena `replace_content`                 |
+| Find files by name              | Built-in Glob                            |
+| Search for text patterns        | Built-in Grep                            |
 
 ## 3. Obsidian (`.obsidian/`)
 
@@ -72,6 +75,7 @@ This repository is optimized for four tools that work together cohesively.
 - `graph.json` — Knowledge graph visualization
 
 ### Key integrations:
+
 - Open the repo root as an Obsidian vault to get full wiki-style navigation
 - `[[]]` wikilinks work between all project docs
 - Graph view shows doc interconnections
@@ -79,6 +83,7 @@ This repository is optimized for four tools that work together cohesively.
 - Daily notes for journaling progress (`journal/` folder)
 
 ### Recommended community plugins:
+
 - **Dataview** — Query and list ExecPlans, specs by status
 - **Kanban** — Visualize milestone progress
 - **Calendar** — Navigate daily notes
@@ -93,6 +98,7 @@ This repository is optimized for four tools that work together cohesively.
 - Use `rtk gain` to see savings, `rtk discover` to find missed optimizations
 
 ### Configuration chain:
+
 1. `~/.claude/settings.json` — Global PreToolUse hook (`rtk hook claude`)
 2. `.claude/settings.json` — Project-level duplicate (defense in depth)
 3. `~/.claude/RTK.md` — RTK command reference (loaded via `@RTK.md`)
@@ -100,17 +106,21 @@ This repository is optimized for four tools that work together cohesively.
 ## Cohesion Rules
 
 ### No conflicts:
+
 - Serena and Claude Code both read from the same source tree — no locking issues
 - Obsidian reads `.md` files only; it doesn't interfere with code
 - RTK is transparent — commands work identically, just with fewer tokens
 
 ### Shared ignore patterns:
+
 Each tool respects its own ignore config:
+
 - Serena: `.gitignore` + `project.yml` `ignored_paths`
 - Obsidian: Files starting with `.` are hidden by default
 - Claude Code: Standard `.gitignore` respect
 
 ### Cross-tool references in docs:
+
 - Claude Code: `CLAUDE.md` references AGENTS.md workflow
 - Serena: `mem:task_completion` references COMMANDS.md verification
 - Obsidian: Workspace bookmarks link to AGENTS.md, COMMANDS.md, ARCHITECTURE.md

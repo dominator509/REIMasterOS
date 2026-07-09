@@ -86,7 +86,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Provide repository implementations for initial canonical records.
 - **Files to read:** SPEC-002-data-model.md, SECURITY.md, packages/domain/src
-- **Files to change:** packages/persistence/src/repositories/**, packages/persistence/src/__tests__/**
+- **Files to change:** packages/persistence/src/repositories/**, packages/persistence/src/**tests**/**
 - **Exact edits expected:** Implement tenant-scoped repository methods for properties, owners, contacts, lead lists, tasks, activity events, compliance verdicts, approvals, and provider credential metadata; add cross-tenant denial tests.
 - **Validation command:** `sh scripts/test-integration.sh`
 - **Expected result:** Repository integration tests pass and prove cross-tenant access denied.
@@ -96,7 +96,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Create interfaces and minimal test-backed stubs for OpenSearch, object storage, and Redis as projections/ephemeral state.
 - **Files to read:** ARCHITECTURE.md, OBSERVABILITY.md, SPEC-002-data-model.md
-- **Files to change:** packages/persistence/src/search/**, packages/persistence/src/storage/**, packages/persistence/src/cache/**, infra/compose/solo-budget.yml, packages/persistence/src/__tests__/**
+- **Files to change:** packages/persistence/src/search/**, packages/persistence/src/storage/**, packages/persistence/src/cache/**, infra/compose/solo-budget.yml, packages/persistence/src/**tests**/**
 - **Exact edits expected:** Add projection interfaces, tenant-scoped object artifact key builder, Redis cache/queue placeholders, and tests proving search is derived/non-authoritative.
 - **Validation command:** `sh scripts/test-integration.sh`
 - **Expected result:** Projection/storage/cache tests pass without live paid services.
@@ -111,7 +111,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Validation command:** `sh scripts/verify.sh`
 - **Expected result:** Full verification passes.
 - **Recovery instruction:** If full verify fails due UI/auth not implemented yet, run integration validation and record out-of-scope gaps.
-
 
 ## 9. Concrete Steps
 
@@ -154,7 +153,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `sh scripts/verify.sh`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

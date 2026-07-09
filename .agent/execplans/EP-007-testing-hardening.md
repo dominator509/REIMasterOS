@@ -78,7 +78,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Prevent critical compliance/security regressions.
 - **Files to read:** SECURITY.md, SPEC-005-auth-and-permissions.md, SPEC-001-core-domain.md
-- **Files to change:** packages/domain/src/__tests__/**, apps/api/test/**, packages/persistence/src/__tests__/**
+- **Files to change:** packages/domain/src/**tests**/**, apps/api/test/**, packages/persistence/src/**tests**/**
 - **Exact edits expected:** Add tests for DNC suppression-only, opt-out/unsubscribe/consent/quiet hours, high-risk approvals, worker recheck, and cross-tenant denial.
 - **Validation command:** `sh scripts/test-unit.sh && sh scripts/test-integration.sh`
 - **Expected result:** Regression tests pass.
@@ -88,7 +88,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Protect hidden prefixes, deterministic prompt compilation, and cache telemetry.
 - **Files to read:** OBSERVABILITY.md, SECURITY.md, ARCHITECTURE.md
-- **Files to change:** services/ai-gateway/tests/**, packages/domain/src/__tests__/**, packages/contracts/src/**
+- **Files to change:** services/ai-gateway/tests/**, packages/domain/src/**tests**/**, packages/contracts/src/**
 - **Exact edits expected:** Add tests for stable prefix >=64 tokens where eligible, prefix hash/version, hidden-prefix stripping, streaming sanitizer, DeepSeek/Hermes metric separation, and cache drift fixtures.
 - **Validation command:** `sh scripts/test-unit.sh && sh scripts/test-integration.sh`
 - **Expected result:** AI safety/cache tests pass or clear disabled-state tests pass if gateway not implemented.
@@ -113,7 +113,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Validation command:** `sh scripts/verify.sh`
 - **Expected result:** Full verification passes reliably.
 - **Recovery instruction:** If a test is flaky, isolate, fix determinism, or quarantine only with Decision Log entry and risk.
-
 
 ## 9. Concrete Steps
 
@@ -156,7 +155,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `sh scripts/verify.sh`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

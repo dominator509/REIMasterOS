@@ -61,7 +61,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Create pure domain models for tenant-scoped acquisition workflows.
 - **Files to read:** SPEC-001-core-domain.md, ARCHITECTURE.md, packages/domain
-- **Files to change:** packages/domain/src/entities/**, packages/domain/src/value-objects/**, packages/domain/src/index.ts, packages/domain/src/__tests__/**
+- **Files to change:** packages/domain/src/entities/**, packages/domain/src/value-objects/**, packages/domain/src/index.ts, packages/domain/src/**tests**/**
 - **Exact edits expected:** Implement TenantId, EntityId, Address, ContactPoint, Property, Owner, Contact, LeadList, ActivityEvent, Task, Campaign, Offer, Negotiation types with validation and synthetic unit tests.
 - **Validation command:** `sh scripts/test-unit.sh`
 - **Expected result:** Unit tests pass and print `unit tests: ok`.
@@ -71,7 +71,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Deterministically classify outreach and high-risk actions.
 - **Files to read:** SECURITY.md, SPEC-005-auth-and-permissions.md, SPEC-001-core-domain.md
-- **Files to change:** packages/domain/src/policies/compliance.ts, packages/domain/src/policies/approval.ts, packages/domain/src/__tests__/compliance-policy.test.ts
+- **Files to change:** packages/domain/src/policies/compliance.ts, packages/domain/src/policies/approval.ts, packages/domain/src/**tests**/compliance-policy.test.ts
 - **Exact edits expected:** Create verdict types `allowed|blocked|needs_approval`, reason codes, and policy tests for DNC, internal opt-out, unsubscribe, consent, quiet hours, call recording, SMS disabled, outbound AI voice locked, and binding offer actions.
 - **Validation command:** `sh scripts/test-unit.sh`
 - **Expected result:** Compliance tests cover all three verdicts and pass.
@@ -81,7 +81,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Support investor acquisition analysis without unsafe negotiation tactics.
 - **Files to read:** SPEC-001-core-domain.md, PROJECT_BRIEF.md, SECURITY.md
-- **Files to change:** packages/domain/src/deal-math/**, packages/domain/src/negotiation/**, packages/domain/src/__tests__/deal-math.test.ts, packages/domain/src/__tests__/negotiation-safety.test.ts
+- **Files to change:** packages/domain/src/deal-math/**, packages/domain/src/negotiation/**, packages/domain/src/**tests**/deal-math.test.ts, packages/domain/src/**tests**/negotiation-safety.test.ts
 - **Exact edits expected:** Implement ARV/repair/holding/closing/profit/MAO calculations, offer ladder, counteroffer summary types, and negotiation safety checks blocking misrepresentation and unauthorized commitments.
 - **Validation command:** `sh scripts/test-unit.sh`
 - **Expected result:** Deal math and negotiation safety unit tests pass.
@@ -91,7 +91,7 @@ Do not change files outside this list unless repository evidence requires it. An
 
 - **Goal:** Represent provider-agnostic, cost-aware operations and AI tool safety in domain.
 - **Files to read:** ARCHITECTURE.md, SPEC-000-product-scope.md, SPEC-001-core-domain.md
-- **Files to change:** packages/domain/src/providers/**, packages/domain/src/ai-policy/**, packages/domain/src/__tests__/provider-fallback.test.ts, packages/domain/src/__tests__/ai-action-policy.test.ts
+- **Files to change:** packages/domain/src/providers/**, packages/domain/src/ai-policy/**, packages/domain/src/**tests**/provider-fallback.test.ts, packages/domain/src/**tests**/ai-action-policy.test.ts
 - **Exact edits expected:** Create provider capability/fallback decision functions for email/direct-mail/voice/SMS/maps/AI and AI action classifications that require MCP/policy/approval.
 - **Validation command:** `sh scripts/test-unit.sh`
 - **Expected result:** Provider fallback and AI policy tests pass.
@@ -106,7 +106,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Validation command:** `sh scripts/verify.sh`
 - **Expected result:** Full verification passes.
 - **Recovery instruction:** If full verify fails outside domain due earlier unfinished plans, run `sh scripts/test-unit.sh` and record out-of-scope failure evidence.
-
 
 ## 9. Concrete Steps
 
@@ -149,7 +148,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `sh scripts/verify.sh`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

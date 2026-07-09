@@ -119,7 +119,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Expected result:** Diff contains expected deployment/release files; no secrets.
 - **Recovery instruction:** If secrets or generated artifacts appear, remove them and rerun diff.
 
-
 ## 9. Concrete Steps
 
 ### Milestone 1 Steps: Create Docker Compose deployment profiles
@@ -161,7 +160,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `git diff --name-only`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

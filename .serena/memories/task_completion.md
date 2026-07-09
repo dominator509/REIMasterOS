@@ -13,6 +13,7 @@ When a coding task is considered done, run these in order:
 9. `sh scripts/verify.sh` — full verification
 
 After validation:
+
 - Run `git diff --name-only` and compare changed files to expected files
 - Document any justified extra files in the active ExecPlan Decision Log
 - Update ExecPlan Progress, Surprises & Discoveries, Decision Log, Outcomes & Retrospective

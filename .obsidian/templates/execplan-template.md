@@ -1,7 +1,7 @@
 ---
 type: execplan
 status: draft
-created: {{date}}
+created: { { date } }
 ep: ""
 phase: ""
 tags: [execplan]
@@ -25,9 +25,9 @@ tags: [execplan]
 
 ## Milestones
 
-- [ ] M1: 
-- [ ] M2: 
-- [ ] M3: 
+- [ ] M1:
+- [ ] M2:
+- [ ] M3:
 
 ## Validation and Acceptance
 

@@ -118,7 +118,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Expected result:** Diff contains readiness docs/plan updates and no secrets or production data.
 - **Recovery instruction:** If unexpected files changed, justify or revert before final report.
 
-
 ## 9. Concrete Steps
 
 ### Milestone 1 Steps: Run full verification and classify failures
@@ -160,7 +159,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `git diff --name-only`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 

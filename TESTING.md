@@ -216,15 +216,15 @@ Every feature must include:
 
 ## Validation Matrix
 
-| Change Type | Required Commands |
-|---|---|
-| Domain-only | `sh scripts/lint.sh`, `sh scripts/typecheck.sh`, `sh scripts/test-unit.sh` |
-| Persistence/schema | Domain commands plus `sh scripts/test-integration.sh`, migration command |
-| API/service | `sh scripts/lint.sh`, `sh scripts/typecheck.sh`, `sh scripts/test-unit.sh`, `sh scripts/test-integration.sh` |
-| UI/client | `sh scripts/lint.sh`, `sh scripts/typecheck.sh`, `sh scripts/test-unit.sh`, `sh scripts/test-e2e.sh` |
-| Security/auth | Full verify plus `sh scripts/security-check.sh` |
-| Deployment/infra | `sh scripts/build.sh`, `sh scripts/smoke-test.sh`, `sh scripts/production-readiness-check.sh` |
-| Production release | `sh scripts/verify.sh`, `sh scripts/production-readiness-check.sh` |
+| Change Type        | Required Commands                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Domain-only        | `sh scripts/lint.sh`, `sh scripts/typecheck.sh`, `sh scripts/test-unit.sh`                                   |
+| Persistence/schema | Domain commands plus `sh scripts/test-integration.sh`, migration command                                     |
+| API/service        | `sh scripts/lint.sh`, `sh scripts/typecheck.sh`, `sh scripts/test-unit.sh`, `sh scripts/test-integration.sh` |
+| UI/client          | `sh scripts/lint.sh`, `sh scripts/typecheck.sh`, `sh scripts/test-unit.sh`, `sh scripts/test-e2e.sh`         |
+| Security/auth      | Full verify plus `sh scripts/security-check.sh`                                                              |
+| Deployment/infra   | `sh scripts/build.sh`, `sh scripts/smoke-test.sh`, `sh scripts/production-readiness-check.sh`                |
+| Production release | `sh scripts/verify.sh`, `sh scripts/production-readiness-check.sh`                                           |
 
 ## Definition of Test Done
 

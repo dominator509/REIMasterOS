@@ -4,16 +4,16 @@ This file is the architecture decision log. Add an ADR for decisions that change
 
 ## Decision Table
 
-| ADR | Date | Status | Owner | Decision | Related Files |
-|---|---:|---|---|---|---|
-| ADR-0001 | 2026-07-07 | Accepted | Product/Architecture | Investor/acquisitions-first product scope; licensed-agent workflows optional. | `PROJECT_BRIEF.md`, `SPEC-000-product-scope.md` |
-| ADR-0002 | 2026-07-07 | Accepted | Architecture | Use six-layer architecture with domain/policy core isolated from UI, database, provider SDKs, and AI runtimes. | `ARCHITECTURE.md` |
-| ADR-0003 | 2026-07-07 | Accepted | Architecture | Use provider adapters and manual/self-host fallbacks before paid SaaS integrations. | `ARCHITECTURE.md`, `ENVIRONMENT.md` |
-| ADR-0004 | 2026-07-07 | Accepted | Data Architecture | PostgreSQL/PostGIS is authoritative; OpenSearch is a rebuildable projection; Redis is ephemeral; object storage holds artifacts. | `SPEC-002-data-model.md` |
-| ADR-0005 | 2026-07-07 | Accepted | AI Architecture | Local Hermes is default/private mode; DeepSeek is optional hosted/hybrid reasoning via LLM gateway. | `SPEC-001-core-domain.md`, `OBSERVABILITY.md` |
-| ADR-0006 | 2026-07-07 | Accepted | Compliance/Security | DNC is suppression-only and raw DNC data must not be dashboard-visible. | `SECURITY.md`, `SPEC-005-auth-and-permissions.md` |
-| ADR-0007 | 2026-07-07 | Accepted | Licensing/Security | Cobras is reference-only and PropStream is benchmark-only unless future license/provenance ADR approves otherwise. | `PROJECT_BRIEF.md`, `SECURITY.md` |
-| ADR-0008 | 2026-07-07 | Proposed | AI/Legal | RTK/Rust Token Killer integration requires license/provenance review before code or binary reuse. | `ASSUMPTIONS.md`, `SECURITY.md` |
+| ADR      |       Date | Status   | Owner                | Decision                                                                                                                         | Related Files                                     |
+| -------- | ---------: | -------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| ADR-0001 | 2026-07-07 | Accepted | Product/Architecture | Investor/acquisitions-first product scope; licensed-agent workflows optional.                                                    | `PROJECT_BRIEF.md`, `SPEC-000-product-scope.md`   |
+| ADR-0002 | 2026-07-07 | Accepted | Architecture         | Use six-layer architecture with domain/policy core isolated from UI, database, provider SDKs, and AI runtimes.                   | `ARCHITECTURE.md`                                 |
+| ADR-0003 | 2026-07-07 | Accepted | Architecture         | Use provider adapters and manual/self-host fallbacks before paid SaaS integrations.                                              | `ARCHITECTURE.md`, `ENVIRONMENT.md`               |
+| ADR-0004 | 2026-07-07 | Accepted | Data Architecture    | PostgreSQL/PostGIS is authoritative; OpenSearch is a rebuildable projection; Redis is ephemeral; object storage holds artifacts. | `SPEC-002-data-model.md`                          |
+| ADR-0005 | 2026-07-07 | Accepted | AI Architecture      | Local Hermes is default/private mode; DeepSeek is optional hosted/hybrid reasoning via LLM gateway.                              | `SPEC-001-core-domain.md`, `OBSERVABILITY.md`     |
+| ADR-0006 | 2026-07-07 | Accepted | Compliance/Security  | DNC is suppression-only and raw DNC data must not be dashboard-visible.                                                          | `SECURITY.md`, `SPEC-005-auth-and-permissions.md` |
+| ADR-0007 | 2026-07-07 | Accepted | Licensing/Security   | Cobras is reference-only and PropStream is benchmark-only unless future license/provenance ADR approves otherwise.               | `PROJECT_BRIEF.md`, `SECURITY.md`                 |
+| ADR-0008 | 2026-07-07 | Proposed | AI/Legal             | RTK/Rust Token Killer integration requires license/provenance review before code or binary reuse.                                | `ASSUMPTIONS.md`, `SECURITY.md`                   |
 
 ## ADR Index
 

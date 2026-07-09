@@ -36,22 +36,22 @@ Do not use destructive shell commands for inspection. Do not print secrets or ra
 
 ## Allowed Local Commands
 
-| Purpose | Command | Expected Success Output |
-|---|---|---|
-| Preflight | `sh scripts/preflight.sh` | `preflight: ok` |
-| Install dependencies | `sh scripts/install.sh` | `install: ok` |
-| Lint | `sh scripts/lint.sh` | `lint: ok` |
-| Format check | `sh scripts/format-check.sh` | `format check: ok` |
-| Typecheck/static validation | `sh scripts/typecheck.sh` | `typecheck: ok` |
-| Unit tests | `sh scripts/test-unit.sh` | `unit tests: ok` |
-| Integration tests | `sh scripts/test-integration.sh` | `integration tests: ok` |
-| E2E/acceptance tests | `sh scripts/test-e2e.sh` | `e2e tests: ok` |
-| Build | `sh scripts/build.sh` | `build: ok` |
-| Security check | `sh scripts/security-check.sh` | `security check: ok` |
-| Dependency audit | `sh scripts/dependency-audit.sh` | `dependency audit: ok` |
-| Smoke test | `sh scripts/smoke-test.sh` | `smoke test: ok` |
-| Full verification | `sh scripts/verify.sh` | `verify: ok` |
-| Production readiness check | `sh scripts/production-readiness-check.sh` | `production readiness: ok` |
+| Purpose                     | Command                                    | Expected Success Output    |
+| --------------------------- | ------------------------------------------ | -------------------------- |
+| Preflight                   | `sh scripts/preflight.sh`                  | `preflight: ok`            |
+| Install dependencies        | `sh scripts/install.sh`                    | `install: ok`              |
+| Lint                        | `sh scripts/lint.sh`                       | `lint: ok`                 |
+| Format check                | `sh scripts/format-check.sh`               | `format check: ok`         |
+| Typecheck/static validation | `sh scripts/typecheck.sh`                  | `typecheck: ok`            |
+| Unit tests                  | `sh scripts/test-unit.sh`                  | `unit tests: ok`           |
+| Integration tests           | `sh scripts/test-integration.sh`           | `integration tests: ok`    |
+| E2E/acceptance tests        | `sh scripts/test-e2e.sh`                   | `e2e tests: ok`            |
+| Build                       | `sh scripts/build.sh`                      | `build: ok`                |
+| Security check              | `sh scripts/security-check.sh`             | `security check: ok`       |
+| Dependency audit            | `sh scripts/dependency-audit.sh`           | `dependency audit: ok`     |
+| Smoke test                  | `sh scripts/smoke-test.sh`                 | `smoke test: ok`           |
+| Full verification           | `sh scripts/verify.sh`                     | `verify: ok`               |
+| Production readiness check  | `sh scripts/production-readiness-check.sh` | `production readiness: ok` |
 
 ## Package Scripts Expected After EP-001
 

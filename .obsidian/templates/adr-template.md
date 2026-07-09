@@ -1,8 +1,8 @@
 ---
 type: adr
 status: proposed
-created: {{date}}
-decided: 
+created: { { date } }
+decided:
 tags: [adr]
 ---
 

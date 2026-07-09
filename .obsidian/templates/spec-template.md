@@ -1,7 +1,7 @@
 ---
 type: spec
 status: draft
-created: {{date}}
+created: { { date } }
 spec: ""
 phase: ""
 tags: [spec]

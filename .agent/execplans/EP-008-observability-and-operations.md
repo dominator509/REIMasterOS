@@ -115,7 +115,6 @@ Do not change files outside this list unless repository evidence requires it. An
 - **Expected result:** Full verification passes.
 - **Recovery instruction:** If full verify fails outside observability, record out-of-scope failures and run observability-specific tests.
 
-
 ## 9. Concrete Steps
 
 ### Milestone 1 Steps: Add structured logging and redaction
@@ -157,7 +156,6 @@ Do not change files outside this list unless repository evidence requires it. An
 3. Apply the exact edits expected for this milestone only.
 4. Run `sh scripts/verify.sh`.
 5. Record command output and update Progress before continuing.
-
 
 ## 10. Validation and Acceptance
 
