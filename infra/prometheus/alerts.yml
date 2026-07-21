@@ -1,0 +1,86 @@
+groups:
+  - name: rei-os-system
+    rules:
+      - alert: ReiOsTelemetryCollectorDown
+        expr: up{job="otel-collector"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "REI-OS telemetry collector is unavailable"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsApiHighErrorRate
+        expr: sum(rate(rei_api_errors_total[5m])) / clamp_min(sum(rate(rei_api_requests_total[5m])), 1) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "REI-OS API error rate exceeds 5 percent"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsApiHighLatency
+        expr: histogram_quantile(0.95, sum by (le) (rate(rei_api_request_duration_ms_bucket[5m]))) > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "REI-OS API p95 latency exceeds 1000 ms"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsWorkerQueueOldestAgeHigh
+        expr: max(rei_worker_queue_age_seconds) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "REI-OS oldest queued job exceeds 5 minutes"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsSearchProjectionLagHigh
+        expr: max(rei_search_projection_lag_seconds) > 300
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "REI-OS search projection lag exceeds 5 minutes"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+
+  - name: rei-os-safety-and-providers
+    rules:
+      - alert: ReiOsTenantScopeDenialSpike
+        expr: sum(increase(rei_tenant_scope_denials_total[5m])) > 5
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "REI-OS tenant-scope denials spiked"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsProviderFailureSpike
+        expr: sum by (provider) (rate(rei_provider_calls_total{status=~"error|failed"}[5m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "REI-OS provider failure rate is elevated"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsAiSanitizerBlockedOutput
+        expr: sum(increase(rei_ai_sanitizer_blocks_total[5m])) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "REI-OS AI sanitizer blocked possible hidden-prefix leakage"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsAiCacheRequestHitRateLow
+        expr: sum by (provider) (rate(rei_ai_cache_requests_total{cache_hit="true"}[15m])) / clamp_min(sum by (provider) (rate(rei_ai_cache_requests_total[15m])), 1) < 0.97 and sum by (provider) (increase(rei_ai_cache_requests_total[15m])) >= 10
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "REI-OS eligible AI request cache hit rate is below 97 percent"
+          runbook: "OPERATIONS.md#observability-alert-triage"
+      - alert: ReiOsProviderCostEstimateHigh
+        expr: sum(rei_provider_cost_estimate_usd) > 100
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "REI-OS provider estimated spend exceeds the baseline threshold"
+          runbook: "OPERATIONS.md#observability-alert-triage"

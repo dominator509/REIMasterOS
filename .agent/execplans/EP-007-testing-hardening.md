@@ -192,24 +192,39 @@ General recovery:
 
 Initial state: Not started. Requires implemented layers to test; can add contract/stub tests for planned boundaries.
 
-- [ ] Milestone 1: Audit coverage and classify gaps — validation `sh scripts/verify.sh` passed and result recorded.
-- [ ] Milestone 2: Add compliance and tenant-isolation regression tests — validation `sh scripts/test-unit.sh && sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 3: Add AI prompt/cache/sanitizer regression tests — validation `sh scripts/test-unit.sh && sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 4: Add provider contract and failure-mode tests — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 5: Stabilize CI validation and final review — validation `sh scripts/verify.sh` passed and result recorded.
+- [x] Milestone 1: Audit coverage and classify gaps — source-to-spec matrix recorded in `TESTING.md`; after fixing the single reported Markdown formatting issue, `sh scripts/verify.sh` passed on 2026-07-18 in 165.1s.
+- [x] Milestone 2: Add compliance and tenant-isolation regression tests — `sh scripts/test-unit.sh` passed with domain 92 tests and API 33 tests; `sh scripts/test-integration.sh` passed with API 10 files/33 tests and persistence 24 passed/1 explicit opt-in live test skipped on 2026-07-18.
+- [x] Milestone 3: Add AI prompt/cache/sanitizer regression tests — `sh scripts/test-unit.sh` passed with API 11 files/37 tests and observability 2 files/11 tests; `sh scripts/test-integration.sh` passed with API 11 files/37 tests and persistence 24 passed/1 opt-in live test skipped on 2026-07-18.
+- [x] Milestone 4: Add provider contract and failure-mode tests — `sh scripts/test-integration.sh` passed on 2026-07-18 with adapters 1 file/6 synthetic contract tests, API 11 files/37 tests, and persistence 24 passed/1 opt-in live test skipped.
+- [x] Milestone 5: Stabilize CI validation and final review — CI now calls the documented full verifier for `main` and `master`; E2E, security, dependency audit, and smoke are blocking; unit/integration/E2E tests execute uncached. After a type-safe adapter-fixture correction, `sh scripts/verify.sh` passed twice on 2026-07-18, with the final independent no-cache run completing in 101.3s.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: Default CI must not call live providers.
+- 2026-07-18: The repository has no `services/`, `workers/`, or `packages/adapters` implementation. AI, worker, and provider hardening must therefore use contract-level package/API seams until later ExecPlans create those runtimes.
+- 2026-07-18: CI runs package scripts directly, omits E2E and the local security scan, and makes dependency audit and smoke failures non-blocking. This conflicts with `COMMANDS.md` and is routed to Milestone 5.
+- 2026-07-18: The first Milestone 1 verify stopped only because the new `TESTING.md` table needed Prettier formatting; formatting that file and rerunning the same command produced a full green result.
+- 2026-07-18: Coverage hardening exposed that voice with call consent and recording setup could be marked `allowed` even when recording consent itself was false. Adding the missing `call_recording_consent` approval requirement closes that bypass.
+- 2026-07-18: No worker runtime exists, and queued campaign jobs intentionally contain identifiers rather than stale policy truth. A small future-worker policy seam now requires current permission and reloads current compliance facts immediately before a side effect.
+- 2026-07-18: The AI gateway is still disabled, so regression protection is implemented as pure contract seams: cache-eligible prefixes require an estimated 64 tokens, hash/version drift is deterministic, streaming output remains fully buffered until sanitization, and telemetry rejects raw prefix identifiers while separating Hermes from DeepSeek.
+- 2026-07-18: `packages/adapters` was absent. The minimal workspace package now defines provider-neutral ports and synthetic contract tests for email/manual fallback, tenant-scoped direct mail, manual voice, disabled SMS, property CSV preview, suppression-only DNC verdicts, and webhook validation without any SDK or network dependency.
+- 2026-07-18: Adding type checking to the same blocking path exposed a concrete test-contract defect that Vitest transpilation had not: `DisabledSmsAdapter.sendSms` implemented a zero-argument concrete signature even though the port accepts context and input. The implementation now validates both without enabling SMS.
+- 2026-07-18: Turbo declared `coverage/**` and `test-results/**` outputs that the current unit and E2E suites never produce. This emitted warnings and allowed those verification tasks to be cached; all test tiers now execute uncached so the full verifier cannot replay stale test success.
 
 ## 14. Decision Log
 
 - 2026-07-07: Hidden-prefix leakage and compliance bypass tests are production-readiness blockers.
+- 2026-07-18: Treat the coverage inventory as a source-to-spec map, not a numeric coverage claim; no coverage reporter is configured.
+- 2026-07-18: `apps/api/src/campaigns/campaign-worker-policy.ts` and the one-line domain compliance fix are justified production-file extras because critical regression tests exposed missing policy behavior; the seam performs no provider call or live side effect.
+- 2026-07-18: `apps/api/src/ai/prompt-safety.ts` and `packages/observability/src/ai-cache-telemetry.ts` are justified contract-stub extras because the planned `services/ai-gateway` does not exist. They remain provider-independent and do not enable AI routing.
+- 2026-07-18: Creating `packages/adapters` required the standard workspace manifest, TypeScript config, Vitest config, source index/contracts, and lockfile importer. These framework-convention extras are justified by the ExecPlan's explicit adapter-contract recovery path.
+- 2026-07-18: `scripts/verify.sh` and `turbo.json` are justified extras because the documented full verifier omitted E2E and the test tasks could replay cached results. CI now has one authoritative blocking wrapper path, while build/static-analysis caching remains enabled.
+- 2026-07-18: `packages/observability/src/__tests__/redaction.test.ts` is a justified test-file edit that removes the last two explicit `any` assertions without weakening recursive-redaction checks.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: Complete on 2026-07-18.
+- Completed milestones: All five milestones completed in order.
+- Validation summary: Final `sh scripts/verify.sh` passed in 101.3s with frozen install; lint and formatting; type checking across nine packages; domain 92, API 37, adapters 6, observability 11, contracts 13, config 11, persistence 24, and web unit tests green; one live PostgreSQL test remained explicitly opt-in; 18 E2E acceptance tests passed; build, local security scan, dependency audit with no known vulnerabilities, and 4/4 smoke checks passed. A preceding full run also passed in 324.1s after fixing the adapter signature exposed by the first full attempt.
+- Changed files summary: Test and contract changes cover domain compliance, persistence isolation, API worker/AI/security/provider failures, UI acceptance, observability cache telemetry, and the new provider-neutral adapters package. CI, testing policy, verifier sequencing, Turbo cache policy, lockfile/workspace metadata, and this ExecPlan were updated. Production-file extras are limited to the compliance bug fix and contract-only seams documented above.
+- Remaining risks: The live PostgreSQL isolation test is opt-in; E2E is server-rendered acceptance rather than browser automation; AI, worker, and live provider runtimes remain disabled/absent; built-in auth remains non-durable and not wired through a browser login; hosted GitHub Actions has not run because this local checkout has no configured remote. Next ExecPlans own runtime observability, deployment, performance, and release readiness.

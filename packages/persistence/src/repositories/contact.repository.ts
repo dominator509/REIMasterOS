@@ -1,6 +1,6 @@
 import type { DbConnection } from "../connection.js";
 import type { TenantContext, PaginationParams, PaginatedResult } from "../repository.interface.js";
-import { paginatedResult } from "../repository.interface.js";
+import { assertTenantContext, paginatedResult } from "../repository.interface.js";
 
 export interface ContactRow {
   id: string;
@@ -19,6 +19,7 @@ export class ContactRepository {
   constructor(private readonly db: DbConnection) {}
 
   async findById(ctx: TenantContext, id: string): Promise<ContactRow | null> {
+    assertTenantContext(ctx);
     const rows = await this.db.query<ContactRow>(
       "SELECT * FROM contacts WHERE id = $1 AND tenant_id = $2",
       [id, ctx.tenantId],
@@ -30,6 +31,7 @@ export class ContactRepository {
     ctx: TenantContext,
     params: PaginationParams,
   ): Promise<PaginatedResult<ContactRow>> {
+    assertTenantContext(ctx);
     const countRows = await this.db.query<{ count: string }>(
       "SELECT COUNT(*) as count FROM contacts WHERE tenant_id = $1",
       [ctx.tenantId],

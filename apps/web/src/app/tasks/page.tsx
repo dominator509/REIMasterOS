@@ -1,19 +1,10 @@
-export default function TasksPage() {
-  return (
-    <div>
-      <h1>Tasks</h1>
-      <p>Task management and follow-ups will appear here.</p>
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 8,
-          padding: "2rem",
-          textAlign: "center",
-          color: "#999",
-        }}
-      >
-        No tasks created yet. Create a task to track follow-ups, inspections, and paperwork.
-      </div>
-    </div>
-  );
+import { TaskListResponseSchema } from "@rei-os/contracts";
+import { TasksView } from "../../features/tasks/tasks-view";
+import { loadApiResource } from "../../lib/api-client";
+
+export const dynamic = "force-dynamic";
+
+export default async function TasksPage() {
+  const state = await loadApiResource("/tasks?page=1&limit=20", TaskListResponseSchema);
+  return <TasksView state={state} />;
 }

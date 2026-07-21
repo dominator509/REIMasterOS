@@ -1,15 +1,35 @@
 receivers:
   otlp:
     protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+  batch: {}
+
 exporters:
   prometheus:
     endpoint: 0.0.0.0:9464
-  logging:
-    loglevel: info
+  debug:
+    verbosity: basic
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
 service:
+  extensions: [health_check]
   pipelines:
     metrics:
       receivers: [otlp]
-      exporters: [prometheus, logging]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus, debug]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]

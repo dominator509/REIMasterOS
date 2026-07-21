@@ -190,24 +190,35 @@ General recovery:
 
 Initial state: Not started. Requires EP-001; benefits from EP-004 contracts/API.
 
-- [ ] Milestone 1: Create dashboard shell and navigation — validation `sh scripts/test-e2e.sh` passed and result recorded.
-- [ ] Milestone 2: Implement property/list/task/activity core screens — validation `sh scripts/test-e2e.sh` passed and result recorded.
-- [ ] Milestone 3: Implement import/export and compliance states — validation `sh scripts/test-e2e.sh` passed and result recorded.
-- [ ] Milestone 4: Implement AI shell and Cost Optimization Center — validation `sh scripts/test-e2e.sh` passed and result recorded.
-- [ ] Milestone 5: Accessibility and final UI verification — validation `sh scripts/verify.sh` passed and result recorded.
+- [x] Milestone 1: Create dashboard shell and navigation — 2026-07-18 `sh scripts/test-e2e.sh` passed (1 file / 2 acceptance tests); semantic landmarks, skip navigation, investor/acquisitions workspace context, required destinations, and original branding are covered.
+- [x] Milestone 2: Implement property/list/task/activity core screens — 2026-07-18 `sh scripts/typecheck.sh` and `sh scripts/test-e2e.sh` passed (2 files / 5 acceptance tests); contract-backed property/detail, lead-list/detail, task, and universal activity views cover loading, empty, populated, and error states with a table alternative.
+- [x] Milestone 3: Implement import/export and compliance states — 2026-07-18 `sh scripts/test-e2e.sh` passed (3 files / 10 tests); CSV validation, provider-optional manual email/direct-mail exports, allowed/blocked/needs-approval verdicts, expiring approvals, and disabled pre-auth launch controls are covered.
+- [x] Milestone 4: Implement AI shell and Cost Optimization Center — 2026-07-18 `sh scripts/test-e2e.sh` passed (4 files / 13 tests); local-only/disabled AI, sanitizer blocking with no partial output, sanitized messages, provider health/fallbacks, and honest unavailable spend/cache telemetry are covered.
+- [x] Milestone 5: Accessibility and final UI verification — 2026-07-18 `sh scripts/test-e2e.sh` passed after a clean dependency/web build (5 files / 17 tests), and `sh scripts/verify.sh` passed install, lint, format, typecheck, unit, integration, build, security, dependency audit, and smoke.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: UI defaults to investor/acquisitions language and avoids third-party protected expression.
+- 2026-07-18 audit: The client contained styled placeholder pages and a trivial unit test; `@rei-os/web test:e2e` deliberately exited with failure, while the root Turbo E2E command also invoked the API package's unrelated failing placeholder.
+- 2026-07-18 validation recovery: The first E2E run was blocked by the unrelated API placeholder. After scoping the command, standalone Vitest lacked Next's automatic JSX transform; adding React only in the test moved the same failure to the first rendered component. Stopped the per-file-import hypothesis and configured the acceptance suite's JSX transform centrally.
+- 2026-07-18 contract integration: All exported list response schemas used a legacy `{ data, total, ... }` pagination shape while EP-004 services return the standard `{ data: { items, ... }, meta }` envelope. Updated list schemas to the standard envelope before wiring UI parsing.
+- 2026-07-18 final verification: The default Vitest unit discovery also collected `tests/**/*.e2e.test.tsx`, bypassing the acceptance config's JSX transform and duplicating the suite. Restricted the unit config to `src/**/*.test.*`; acceptance remains exclusively under `test:e2e`.
+- 2026-07-18 production build: `@rei-os/contracts` advertised `src/index.ts`, whose ESM `.js` specifiers cannot be resolved by Next/Webpack against source. Published the existing TypeScript build output through `dist` package exports and changed root E2E dispatch to a filtered Turbo task so contract/web builds always precede acceptance tests.
 
 ## 14. Decision Log
 
 - 2026-07-07: If API endpoints lag, UI must show disabled/empty states rather than invent backend behavior.
+- 2026-07-18: Use Vitest server-rendered acceptance tests for EP-005 because the existing stack has no browser driver. This proves real component/route markup but is not represented as live-browser coverage; EP-007 must add deeper browser/accessibility hardening if required.
+- 2026-07-18: Changed root `package.json` `test:e2e` to target `@rei-os/web` so this UI plan's required command does not invoke the API package's explicit unimplemented placeholder. This expected extra file is necessary to make the documented command truthful; API transport E2E remains EP-007 work.
+- 2026-07-18: Added `apps/web/package.json` and `apps/web/vitest.e2e.config.ts` as framework command/config extras required to replace the failing placeholder with the acceptance suite; no new dependency was added.
+- 2026-07-18: Production pages load from the documented server-only `API_BASE_URL` (default `http://localhost:3001`) and validate shared response schemas. Synthetic populated data exists only in acceptance tests; unauthenticated writes stay visibly disabled until EP-006.
+- 2026-07-18: Updated `packages/contracts/package.json` to expose its existing compiled `dist` artifacts. This expected package-config extra is required for the Next production bundle; no new build tool or dependency was introduced.
+- 2026-07-18: Updated `COMMANDS.md`, root `package.json`, `apps/web/package.json`, both web Vitest configs, `packages/contracts/package.json`, and `pnpm-lock.yaml` outside the narrow source/test list because the previously documented E2E/package wiring could not execute a clean production acceptance run. All extras are command, framework-config, or lockfile evidence; no unrelated product scope was added.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: Complete.
+- Completed milestones: All five milestones completed in order on 2026-07-18.
+- Validation summary: `sh scripts/test-e2e.sh` passed a clean contract/web build plus 5 files / 17 server-rendered acceptance and accessibility tests. `sh scripts/typecheck.sh`, targeted unit/build recovery checks, and final `sh scripts/verify.sh` passed. Security scan and dependency audit are green with no known vulnerabilities.
+- Changed files summary: Accessible Next app shell/navigation; contract-validating API adapter; property/detail, lead-list/detail, task, activity, import/export, compliance/approval, campaign, AI, provider, and cost-center views; shared response-schema corrections; acceptance/accessibility tests; package/test command configuration; compiled contracts export; command/decision docs; and this ExecPlan.
+- Remaining risks: Tests render real components but do not drive a live browser, so focus behavior, responsive layout, and network navigation still require Playwright/browser hardening in EP-007. Authentication/session propagation and enabled writes are intentionally deferred to EP-006. Runtime API stores/jobs, artifact upload, live AI/providers, and cost/cache telemetry remain disabled or unavailable; the UI states these limits rather than claiming readiness. Production-readiness criteria did not pass and were not run for this plan.

@@ -35,6 +35,7 @@ export function createProperty(params: {
   tenantId: string;
   address: PropertyAddress;
   characteristics: PropertyCharacteristics;
+  now: Date;
 }): Property {
   return {
     id: params.id,
@@ -42,7 +43,7 @@ export function createProperty(params: {
     address: params.address,
     characteristics: params.characteristics,
     status: "active",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }

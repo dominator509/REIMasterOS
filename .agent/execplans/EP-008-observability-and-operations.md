@@ -192,24 +192,39 @@ General recovery:
 
 Initial state: Not started. Requires API/workers/services to instrument.
 
-- [ ] Milestone 1: Add structured logging and redaction — validation `sh scripts/test-unit.sh && sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 2: Add health checks and smoke coverage — validation `sh scripts/smoke-test.sh` passed and result recorded.
-- [ ] Milestone 3: Add metrics and trace instrumentation — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 4: Add dashboards, alerts, and runbooks — validation `sh scripts/production-readiness-check.sh` passed and result recorded.
-- [ ] Milestone 5: Final observability review — validation `sh scripts/verify.sh` passed and result recorded.
+- [x] Milestone 1: Add structured logging and redaction — after fixing the DNC underscore-boundary bypass found by the first run, `sh scripts/test-unit.sh && sh scripts/test-integration.sh` passed on 2026-07-18 with observability 3 files/15 tests, API 12 files/38 tests, persistence 24 passed/1 opt-in live test skipped, and all other workspace suites green.
+- [x] Milestone 2: Add health checks and smoke coverage — `/health/live`, `/health/ready`, and `/health/dependencies` now expose redacted state; required database readiness fails closed while optional absent services report `not_configured`. `sh scripts/smoke-test.sh` passed with 8/8 safe checks on 2026-07-18.
+- [x] Milestone 3: Add metrics and trace instrumentation — `sh scripts/typecheck.sh` passed across all packages and `sh scripts/test-integration.sh` passed on 2026-07-18 with API 13 files/42 tests, adapters 6 tests, and persistence 24 passed/1 opt-in live test skipped.
+- [x] Milestone 4: Add dashboards, alerts, and runbooks — OTel metric/trace pipelines, Prometheus scrape/alert rules, an 11-panel Grafana operations dashboard, and alert triage guidance are structurally provisioned. `sh scripts/production-readiness-check.sh` passed on 2026-07-18 and explicitly reports repository-artifact scope only.
+- [x] Milestone 5: Final observability review — after removing one unused health-controller type import reported by the first lint stage, `sh scripts/verify.sh` passed on 2026-07-18 in 195.1s.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: Self-hosted observability is default; commercial observability adapters are optional.
+- 2026-07-18: The existing logger interface had no implementation and omitted the documented service/environment/version/operation/status fields. A provider-neutral structured logger and API factory now enforce correlation, event-name-only messages, recursive redaction, and exclusion of exception messages.
+- 2026-07-18: The first Milestone 1 unit run exposed that `\bdnc\b` does not match keys such as `raw_dnc` because underscore is a JavaScript word character. The detector now uses alphanumeric boundaries, and the same test plus the complete required validation pass.
+- 2026-07-18: The prior aggregate `/health` route was hard-coded and could not distinguish process liveness from readiness. The new health service keeps the legacy envelope for compatibility while exposing separate reports for API process, required database readiness, and optional worker/AI/provider/search/storage states.
+- 2026-07-18: No OpenTelemetry library or exporter dependency exists. The repository now has redacted tracer/collector ports, an in-memory deterministic test implementation, and no-op implementations for exporter-disabled environments; actual OTLP wiring remains disabled until runtime configuration exists.
+- 2026-07-18: Typecheck caught zero-argument concrete signatures on the no-op tracer/collector implementations. Restoring their full interface signatures preserved substitutability and the same typecheck plus integration validation passed.
+- 2026-07-18: Existing observability provisioning was internally inconsistent: Grafana used obsolete metric names, Prometheus scraped application ports with no metrics endpoint, OTel had no trace pipeline, and the readiness script never failed on missing files. The skeletons now share stable names and the readiness script tracks failures.
+- 2026-07-18: The first final verify stopped on one unused `HealthReport` type import. Removing that import, rerunning `sh scripts/lint.sh`, and restarting the full verifier produced a green result; no behavioral change was required.
 
 ## 14. Decision Log
 
 - 2026-07-07: LLM cache and hidden-prefix metrics must not log prompt text.
+- 2026-07-18: Raw-DNC context is replaced with `redaction_status=blocked_sensitive_payload` at the logging boundary rather than being emitted or throwing into business logic. Unsafe free-text log messages become `unsafe_log_event`; errors retain only their class name and structured error code.
+- 2026-07-18: `apps/api/package.json`, its lockfile entry, and `apps/api/src/__tests__/api-structured-logger.test.ts` are justified framework/test extras required to consume the existing workspace observability package at the API boundary.
+- 2026-07-18: The existing root `apps/api/src/health.controller.ts` remains as a compatibility re-export while `AppModule` uses the scoped `apps/api/src/health/**` implementation required by this ExecPlan.
+- 2026-07-18: Smoke remains local and side-effect-free. It imports pure health/compliance/sanitizer seams and does not start a server, connect to dependencies, expose environment values, or call any provider.
+- 2026-07-18: Metric labels are explicit per definition and reject full URLs, emails, prompt text, and arbitrary keys. The API helper accepts route patterns/event codes rather than raw URLs and emits separate cache labels for `hermes` and `deepseek`.
+- 2026-07-18: `apps/api/src/__tests__/runtime-telemetry.test.ts` is a justified test-location extra because this repository uses colocated `src/__tests__` rather than the plan's generic `apps/api/test/**` path.
+- 2026-07-18: The readiness command validates repository artifacts, cross-file metric/runbook markers, and Grafana JSON only. It deliberately does not claim a deployed collector, valid target-environment networking, Prometheus rule evaluation, alert delivery, dashboard access controls, retention, SLO calibration, or monitoring ownership.
+- 2026-07-18: `scripts/production-readiness-check.sh` is a justified extra explicitly permitted by Milestone 4 recovery. It now exits nonzero on missing required artifacts instead of printing unconditional success.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: Complete on 2026-07-18.
+- Completed milestones: All five milestones completed in order.
+- Validation summary: `sh scripts/production-readiness-check.sh` passed its explicitly structural artifact checks. Final `sh scripts/verify.sh` passed in 195.1s: install, lint, format, typecheck, unit/integration, build, 18 E2E tests, local security scan, dependency audit with no known vulnerabilities, and 8/8 smoke checks. Unit evidence included observability 4 files/17 tests, API 13 files/42 tests, domain 14 files/92 tests, and persistence 24 passed/1 explicitly opt-in live PostgreSQL test skipped.
+- Changed files summary: Added structured logging/redaction, API logger and runtime telemetry helpers, health liveness/readiness/dependency services, in-memory/no-op metrics and tracing, tests, expanded smoke checks, OTel/Prometheus/alert/Grafana provisioning, ADR-0013, and operator/runbook documentation. Compatibility keeps the legacy health controller export. API package/lock metadata and the readiness script are justified extras recorded above.
+- Remaining risks: No runtime OTLP exporter or metrics HTTP endpoint is wired; workers and AI gateway do not exist, so their signals remain contract/dashboard-ready only; health probes report configured/unconfigured state but do not connect to dependencies; Prometheus rule evaluation, collector/container startup, alert routing, Grafana data source/access/retention, monitoring ownership, and threshold calibration have not been proven. The production-readiness script is structural only, live PostgreSQL coverage is opt-in, and production readiness has not passed.

@@ -1,0 +1,9 @@
+This chart rendered the existing REI-OS API and web runtimes only.
+
+Before installation, the release owner must:
+1. provide immutable api.image and web.image tags or digests;
+2. create the Secret named by secretRef.name with the documented keys;
+3. set explicit HTTPS app/api URLs and CORS origins;
+4. verify migrations, backups, restore, TLS, observability, and rollback in staging.
+
+No worker, provider, local-LLM, database, or production deployment was enabled by this chart.

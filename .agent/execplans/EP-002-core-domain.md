@@ -184,24 +184,29 @@ General recovery:
 
 Initial state: Not started. Begin only after EP-001 foundation exists or adapt to existing domain package discovered by EP-000.
 
-- [ ] Milestone 1: Define domain primitives and entities — validation `sh scripts/test-unit.sh` passed and result recorded.
-- [ ] Milestone 2: Implement compliance and approval policies — validation `sh scripts/test-unit.sh` passed and result recorded.
-- [ ] Milestone 3: Implement deal math and negotiation safety — validation `sh scripts/test-unit.sh` passed and result recorded.
-- [ ] Milestone 4: Implement provider fallback and AI action policy types — validation `sh scripts/test-unit.sh` passed and result recorded.
-- [ ] Milestone 5: Enforce domain boundary and final review — validation `sh scripts/verify.sh` passed and result recorded.
+- [x] Milestone 1: Define domain primitives and entities — 2026-07-09 audit validation `sh scripts/test-unit.sh` passed; domain suite 14 files / 84 tests, including activity-event and tenant-boundary coverage.
+- [x] Milestone 2: Implement compliance and approval policies — 2026-07-09 audit validation passed; binding offers always require approval and ringless voicemail cannot bypass voice compliance checks.
+- [x] Milestone 3: Implement deal math and negotiation safety — 2026-07-09 audit validation passed; non-negative assumptions, offer-ladder ordering, and confidential-motivation misuse are guarded.
+- [x] Milestone 4: Implement provider fallback and AI action policy types — 2026-07-09 audit validation passed; AI policies explicitly expose MCP/policy requirements and unknown fields are denied by default.
+- [x] Milestone 5: Enforce domain boundary and final review — 2026-07-09 `sh scripts/verify.sh` passed, including lint, typecheck, 84 domain tests, build, local security scan, zero-vulnerability dependency audit, and smoke.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: Domain formulas are expected to be conservative and configurable because market-specific assumptions vary.
+- 2026-07-09 audit: Existing tests were green while the package barrel omitted policy/deal/provider/AI exports and binding offers below $100,000 were auto-approved contrary to the spec.
+- 2026-07-09 audit: Domain constructors read the system clock directly. Timestamps are now supplied by callers, and a boundary test rejects future direct clock access and forbidden-layer imports.
 
 ## 14. Decision Log
 
 - 2026-07-07: Compliance policies default to blocked/needs_approval when prerequisites are missing.
+- 2026-07-09: Removed amount-based auto-approval for binding offers; every binding submission requires approval and MFA regardless of amount.
+- 2026-07-09: Caller-supplied `Date` values are the domain clock boundary. This keeps Layer 3 deterministic without importing runtime clock infrastructure.
+- 2026-07-09: AI-writable fields use an explicit allowlist (`notes`, `tags`, and draft-only fields); unknown fields are authoritative by default and denied.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: **Complete** (2026-07-09 audit/remediation pass).
+- Completed milestones: 5/5.
+- Validation summary: `sh scripts/test-unit.sh`, `sh scripts/lint.sh`, `sh scripts/format-check.sh`, and `sh scripts/verify.sh` pass. Domain: 14 files / 84 tests.
+- Changed files summary: Domain entities, value objects, policies, deal math, negotiation, AI policy, barrel exports, and tests; this ExecPlan only.
+- Remaining risks: Compliance rules remain conservative draft-baseline policy and require owner/legal review before live outreach; no live provider or production data paths were exercised.

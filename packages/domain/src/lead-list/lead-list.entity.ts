@@ -20,6 +20,7 @@ export function createLeadList(params: {
   tenantId: string;
   name: string;
   description?: string;
+  now: Date;
 }): LeadList {
   return {
     id: params.id as EntityId,
@@ -30,15 +31,22 @@ export function createLeadList(params: {
     leadIds: [],
     tags: [],
     stage: "importing",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }
 
-export function addLeadsToList(list: LeadList, leadIds: readonly EntityId[]): LeadList {
+export function addLeadsToList(list: LeadList, leadIds: readonly EntityId[], now: Date): LeadList {
   const existing = new Set(list.leadIds);
   const newLeads = leadIds.filter((id) => !existing.has(id));
-  return { ...list, leadIds: [...list.leadIds, ...newLeads], updatedAt: new Date() };
+  return { ...list, leadIds: [...list.leadIds, ...newLeads], updatedAt: now };
+}
+
+export function assertSameTenant(
+  parent: { readonly tenantId: TenantId },
+  child: { readonly tenantId: TenantId },
+): void {
+  if (parent.tenantId !== child.tenantId) throw new Error("Cross-tenant relationship denied");
 }
 
 export function deduplicateByKey<T>(items: readonly T[], keyFn: (item: T) => string): T[] {

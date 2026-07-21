@@ -197,24 +197,37 @@ General recovery:
 
 Initial state: Not started. Requires prior application services for meaningful images; create only existing-service images.
 
-- [ ] Milestone 1: Create Docker Compose deployment profiles — validation `sh scripts/smoke-test.sh` passed and result recorded.
-- [ ] Milestone 2: Add build artifacts and image pipeline — validation `sh scripts/build.sh && sh scripts/security-check.sh` passed and result recorded.
-- [ ] Milestone 3: Add Helm/Kubernetes skeleton — validation `sh scripts/production-readiness-check.sh` passed and result recorded.
-- [ ] Milestone 4: Finalize release and rollback process — validation `sh scripts/production-readiness-check.sh` passed and result recorded.
-- [ ] Milestone 5: Final deployment/release review — validation `git diff --name-only` passed and result recorded.
+- [x] Milestone 1: Create Docker Compose deployment profiles — all four profiles now use explicit runtime configuration, health-gated app dependencies, optional local-AI/observability paths, and no mandatory paid provider. `sh scripts/smoke-test.sh` passed with 8/8 checks on 2026-07-18.
+- [x] Milestone 2: Add build artifacts and image pipeline — `sh scripts/build.sh && sh scripts/security-check.sh` passed on 2026-07-18. Isolated local Docker builds then produced `rei-os-api:local` and `rei-os-web:local` as unprivileged Node runtime images; no push or deployment occurred.
+- [x] Milestone 3: Add Helm/Kubernetes skeleton — `sh scripts/production-readiness-check.sh` passed its repository-artifact checks on 2026-07-18. A checksum-verified temporary Helm v3.20.2 binary also linted the chart and rendered API/web manifests with synthetic references; enabling the absent worker runtime failed as designed. No cluster admission or deployment was attempted.
+- [x] Milestone 4: Finalize release and rollback process — `sh scripts/production-readiness-check.sh` passed on 2026-07-18 after verifying image jobs/scans, release/rollback evidence contracts, and target-smoke markers. `sh scripts/typecheck.sh` and the default 8-case smoke also passed for the new target-aware smoke path.
+- [x] Milestone 5: Final deployment/release review — `git diff --name-only`, `git status --short --branch`, and `git diff --check` passed/reviewed on 2026-07-18. The cumulative worktree contains EP-001–EP-009 implementation plus three pre-existing user-owned `.obsidian` changes; EP-009 extras are justified below and no secret/generated release artifact is intended for the final diff.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: Docker Compose budget mode is primary; Kubernetes is optional enterprise path.
+- 2026-07-18: Existing hybrid/vendor/enterprise profiles omitted auth secrets required by production config, loaded an implicit `.env`, lacked application health checks, referenced incomplete observability mounts, and suggested immediate deploy commands. Profiles now distinguish synthetic local defaults from owner-supplied staging/production values and deployment docs no longer present templates as quick deploys.
+- 2026-07-18: The host build hid a package-boundary defect because `@rei-os/config` used Node globals without declaring `@types/node`; a clean API container build exposed it. The first combined PowerShell image-build sequence also allowed a later successful web build to mask the failed API build, so image validations were rerun independently and documented as separate commands.
+- 2026-07-18: The existing Helm directory contained only chart metadata and mutable `latest` values. No templates existed. Helm is not installed system-wide on this audit host; official v3.20.2 was downloaded to `C:\tmp`, its SHA-256 matched the published checksum, and lint/render passed. Kubernetes admission remains unproved.
+- 2026-07-18: The existing smoke command was entirely offline even though release docs called it a post-deploy check. It now adds read-only web/live/readiness checks only when both explicit target URLs are supplied. Readiness still honestly fails until required runtime dependencies have connected probes; no staging target existed to exercise target mode.
+- 2026-07-19: The first final verify retry reached the web production build but failed with Windows `EPERM` while Next tried to create pnpm symlinks under `.next/standalone`. A disposable `C:\tmp` probe confirmed the audit process cannot create any symlink, so stale output was not the cause. Next now omits standalone output on Windows unless explicitly forced while Linux CI/container builds keep it; two consecutive local web builds passed.
 
 ## 14. Decision Log
 
 - 2026-07-07: Production deploy/migration remains STOP condition.
+- 2026-07-18: Do not fabricate containers for absent worker or AI-gateway runtimes. An optional local-LLM sidecar does not enable the application AI route; paid provider variables remain optional and manual/local core fallbacks remain first-class.
+- 2026-07-18: Compose application/observability profiles require secrets from an ignored operator-owned environment source. The solo data-only path remains usable without those values; local data-service defaults are explicitly non-production.
+- 2026-07-18: Package runtime exports point to compiled `dist` output, and each package must declare build-only types it consumes so clean container builds do not depend on host hoisting. `packages/config/package.json` and the lockfile are justified extra files for that release-image defect.
+- 2026-07-18: CI builds both existing runtime images and pins the container scanner action to a full reviewed commit. The Helm chart requires image tags or digests plus an existing Secret reference, renders only API/web, and refuses to enable the absent worker runtime.
+- 2026-07-18: Runtime images share a version-and-digest-pinned Node base, run as the unprivileged `node` user, and are built/scanned independently. CI intentionally does not publish: registry selection, credentials, signing, provenance, SBOM/notices, and immutable release references remain owner-controlled gates.
+- 2026-07-18: `scripts/smoke/local-smoke.ts` is a justified extra file because the documented release smoke command previously did not test any deployed artifact. Its target mode is GET-only and fails closed on missing, malformed, credential-bearing, unreachable, live-failing, or non-ready targets.
+- 2026-07-18: `COMMANDS.md`, `apps/api/package.json`, `packages/config/package.json`, `packages/domain/package.json`, `packages/observability/package.json`, and `pnpm-lock.yaml` are justified active-plan extras. They document newly validated commands and repair clean-container dependency/export boundaries required for deployable images. The root multi-target Dockerfile covers the existing API; absent service/worker Dockerfiles were not fabricated.
+- 2026-07-19: `apps/web/package.json`, `apps/web/next.config.ts`, `apps/web/src/__tests__/next-config.test.ts`, and `scripts/clean-next-output.mjs` are justified extras required to make the documented production build repeatable on Windows without weakening Linux release images. The cleanup verifies the `@rei-os/web` package identity before removing only `.next`.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: Completed on 2026-07-19.
+- Completed milestones: All five milestones completed in order.
+- Validation summary: Compose smoke passed 8/8; build and security checks passed; API/web images built and started as non-root runtimes; Helm v3.20.2 lint/render passed with synthetic references and the worker negative gate failed as designed; production-readiness artifact checks passed; two consecutive Windows web builds passed after the symlink-capability fix; final `sh scripts/verify.sh` passed lint, format, typecheck, 92 domain tests, 42 API tests, 24 persistence tests plus one opt-in live-DB skip, 17 observability tests, 13 contract tests, 11 config tests, 6 adapter tests, 4 web unit tests, 18 E2E tests, build, security, zero known dependency vulnerabilities, and 8 smoke checks.
+- Changed files summary: Expected Compose, image, CI, Helm, deployment/release/rollback, readiness, environment, decision, and plan files changed. Justified extras repair clean-container package exports/dependencies, document commands, add read-only target smoke, and make Windows builds repeatable without changing Linux standalone release output. Cumulative EP-001–EP-008 work and three pre-existing user-owned `.obsidian` changes remain in the shared worktree.
+- Remaining risks: No remote/registry/publishing authority, SBOM/notices, connected dependency probes, Kubernetes admission, staging backup/restore/deploy/smoke/rollback evidence, or production approval exists. No production deployment, migration, image push, Secret creation, provider call, or live outreach occurred.

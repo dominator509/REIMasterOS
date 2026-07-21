@@ -11,6 +11,7 @@ export const TABLES = {
   tasks: "tasks",
   activityEvents: "activity_events",
   complianceVerdicts: "compliance_verdicts",
+  approvalRequests: "approval_requests",
   offers: "offers",
   providerCredentials: "provider_credentials",
   objectArtifacts: "object_artifacts",

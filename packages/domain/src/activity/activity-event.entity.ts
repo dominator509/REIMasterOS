@@ -1,4 +1,11 @@
-import type { TenantId, EntityId, UserId } from "../value-objects/entity-id.js";
+import {
+  toEntityId,
+  toTenantId,
+  toUserId,
+  type TenantId,
+  type EntityId,
+  type UserId,
+} from "../value-objects/entity-id.js";
 
 export interface ActivityEvent {
   readonly id: EntityId;
@@ -19,15 +26,21 @@ export function createActivityEvent(params: {
   targetType: string;
   targetId: string;
   metadata?: Record<string, unknown>;
+  timestamp: Date;
 }): ActivityEvent {
+  if (!params.action.trim()) throw new Error("Activity action is required");
+  if (!params.targetType.trim()) throw new Error("Activity target type is required");
+  const systemActors = new Set(["system", "provider", "ai"]);
   return {
-    id: params.id as EntityId,
-    tenantId: params.tenantId as TenantId,
-    actorId: params.actorId as UserId | "system" | "provider" | "ai",
+    id: toEntityId(params.id),
+    tenantId: toTenantId(params.tenantId),
+    actorId: systemActors.has(params.actorId)
+      ? (params.actorId as "system" | "provider" | "ai")
+      : toUserId(params.actorId),
     action: params.action,
     targetType: params.targetType,
-    targetId: params.targetId as EntityId,
+    targetId: toEntityId(params.targetId),
     metadata: params.metadata ?? {},
-    timestamp: new Date(),
+    timestamp: params.timestamp,
   };
 }

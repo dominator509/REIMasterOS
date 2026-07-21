@@ -3,10 +3,12 @@ import { checkOutreachCompliance, isQuietHours, classifyAction } from "../compli
 import { createEmptyConsent } from "../../value-objects/contact-point.js";
 import type { OutreachContext } from "../compliance.js";
 
+const NOW = new Date("2026-07-09T12:00:00.000Z");
+
 function baseContext(overrides?: Partial<OutreachContext>): OutreachContext {
   return {
     channel: "email",
-    consent: createEmptyConsent(),
+    consent: createEmptyConsent(NOW),
     suppression: { internalDnc: false, nationalDnc: false, optedOut: false, unsubscribed: false },
     isQuietHours: false,
     hasCallRecordingSetup: false,
@@ -49,14 +51,14 @@ describe("checkOutreachCompliance", () => {
   it("allows when consent is present", () => {
     const ctx = baseContext({
       channel: "email",
-      consent: { ...createEmptyConsent(), canEmail: true },
+      consent: { ...createEmptyConsent(NOW), canEmail: true },
     });
     expect(checkOutreachCompliance(ctx).verdict).toBe("allowed");
   });
   it("blocks AI voice always", () => {
     const ctx = baseContext({
       channel: "voice",
-      consent: { ...createEmptyConsent(), canCall: true, callRecordingConsent: true },
+      consent: { ...createEmptyConsent(NOW), canCall: true, callRecordingConsent: true },
       hasCallRecordingSetup: true,
       isAiVoiceEnabled: true,
     });
@@ -66,11 +68,77 @@ describe("checkOutreachCompliance", () => {
     const ctx = baseContext({
       channel: "voice",
       isQuietHours: true,
-      consent: { ...createEmptyConsent(), canCall: true, callRecordingConsent: true },
+      consent: { ...createEmptyConsent(NOW), canCall: true, callRecordingConsent: true },
       hasCallRecordingSetup: true,
     });
     expect(checkOutreachCompliance(ctx).verdict).toBe("blocked");
   });
+  it("does not bypass voice checks through ringless voicemail", () => {
+    const ctx = baseContext({ channel: "ringless_voicemail" });
+    expect(checkOutreachCompliance(ctx).verdict).toBe("needs_approval");
+    expect(checkOutreachCompliance(ctx).reasonCodes).toContain("MISSING_CALL_CONSENT");
+  });
+
+  it.each([
+    ["internal DNC", { internalDnc: true }, "INTERNAL_DNC"],
+    ["national DNC", { nationalDnc: true }, "NATIONAL_DNC"],
+    ["global opt-out", { optedOut: true }, "CONTACT_OPTED_OUT"],
+    ["email unsubscribe", { unsubscribed: true }, "UNSUBSCRIBED"],
+  ])(
+    "keeps %s suppression blocked even when consent is otherwise present",
+    (_name, flag, reason) => {
+      const result = checkOutreachCompliance(
+        baseContext({
+          consent: { ...createEmptyConsent(NOW), canEmail: true },
+          suppression: {
+            internalDnc: false,
+            nationalDnc: false,
+            optedOut: false,
+            unsubscribed: false,
+            ...flag,
+          },
+        }),
+      );
+      expect(result.verdict).toBe("blocked");
+      expect(result.reasonCodes).toContain(reason);
+      expect(result.requiredApprovals).toEqual([]);
+    },
+  );
+
+  it("never allows voice when recording consent is missing", () => {
+    const result = checkOutreachCompliance(
+      baseContext({
+        channel: "voice",
+        consent: { ...createEmptyConsent(NOW), canCall: true, callRecordingConsent: false },
+        hasCallRecordingSetup: true,
+      }),
+    );
+    expect(result.verdict).toBe("needs_approval");
+    expect(result.reasonCodes).toContain("MISSING_CALL_RECORDING_CONSENT");
+    expect(result.requiredApprovals).toContain("call_recording_consent");
+  });
+
+  it.each(["voice", "ringless_voicemail", "sms"] as const)(
+    "blocks %s during quiet hours despite channel consent",
+    (channel) => {
+      const result = checkOutreachCompliance(
+        baseContext({
+          channel,
+          consent: {
+            ...createEmptyConsent(NOW),
+            canCall: true,
+            canText: true,
+            callRecordingConsent: true,
+          },
+          isQuietHours: true,
+          hasCallRecordingSetup: true,
+          hasSmsSetup: true,
+        }),
+      );
+      expect(result.verdict).toBe("blocked");
+      expect(result.reasonCodes).toContain("QUIET_HOURS");
+    },
+  );
 });
 
 describe("isQuietHours", () => {

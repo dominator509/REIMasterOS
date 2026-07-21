@@ -1,24 +1,37 @@
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: { code: string; message: string; details?: unknown };
-  meta: { timestamp: string; requestId?: string };
+import { randomUUID } from "node:crypto";
+import type {
+  ApiErrorEnvelope,
+  ApiMeta,
+  ApiResponse,
+  ErrorCode,
+  ErrorDetail,
+} from "@rei-os/contracts";
+
+export interface ResponseMetaInput {
+  readonly requestId?: string;
+  readonly tenantId?: string;
 }
 
-export function successResponse<T>(data: T, requestId?: string): ApiResponse<T> {
-  return { success: true, data, meta: { timestamp: new Date().toISOString(), requestId } };
+function responseMeta(input: ResponseMetaInput = {}): ApiMeta {
+  return {
+    requestId: input.requestId ?? randomUUID(),
+    ...(input.tenantId ? { tenantId: input.tenantId } : {}),
+  };
+}
+
+export function successResponse<T>(data: T, meta: ResponseMetaInput = {}): ApiResponse<T> {
+  return { data, meta: responseMeta(meta) };
 }
 
 export function errorResponse(
-  code: string,
+  code: ErrorCode,
   message: string,
-  details?: unknown,
+  details?: readonly ErrorDetail[],
   requestId?: string,
-): ApiResponse {
+): ApiErrorEnvelope {
   return {
-    success: false,
-    error: { code, message, details },
-    meta: { timestamp: new Date().toISOString(), requestId },
+    error: { code, message, ...(details ? { details: [...details] } : {}) },
+    meta: { requestId: requestId ?? randomUUID() },
   };
 }
 
@@ -27,10 +40,7 @@ export function paginatedResponse<T>(
   total: number,
   page: number,
   limit: number,
-  requestId?: string,
+  meta: ResponseMetaInput = {},
 ): ApiResponse<{ items: T[]; total: number; page: number; limit: number; totalPages: number }> {
-  return successResponse(
-    { items, total, page, limit, totalPages: Math.ceil(total / limit) },
-    requestId,
-  );
+  return successResponse({ items, total, page, limit, totalPages: Math.ceil(total / limit) }, meta);
 }

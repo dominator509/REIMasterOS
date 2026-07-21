@@ -7,4 +7,5 @@ coverage/
 *.log
 pnpm-lock.yaml
 .serena/cache/
-.obsidian/workspace.json
+.obsidian/
+infra/helm/templates/*.yaml

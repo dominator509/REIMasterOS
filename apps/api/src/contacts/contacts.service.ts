@@ -1,31 +1,61 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { successResponse, paginatedResponse, errorResponse } from "../common/response.envelope.js";
+import type { ContactCreateRequest, ContactListQuery, ContactResponse } from "@rei-os/contracts";
+import { PERMISSIONS } from "@rei-os/domain";
+import { errorResponse, paginatedResponse, successResponse } from "../common/response.envelope.js";
+import { TenantMemoryStore } from "../common/tenant-memory-store.js";
+import type { AuthContext } from "../auth/auth-context.interface.js";
+import { assertPermission } from "../auth/authorization.js";
+import { ActivityService } from "../activity/activity.service.js";
 
 @Injectable()
 export class ContactsService {
-  private readonly store = new Map<string, any>();
+  private readonly store = new TenantMemoryStore<ContactResponse>();
 
-  async list(query: any) {
-    const items = [...this.store.values()];
-    return paginatedResponse(items.slice(0, query.limit), items.length, query.page, query.limit);
+  constructor(private readonly activities: ActivityService) {}
+
+  async list(context: AuthContext, query: ContactListQuery) {
+    assertPermission(context, PERMISSIONS.CONTACT_READ);
+    const all = this.store.list(context.tenantId);
+    const filtered = query.contactType
+      ? all.filter((item) => item.contactType === query.contactType)
+      : all;
+    const offset = (query.page - 1) * query.limit;
+    return paginatedResponse(
+      filtered.slice(offset, offset + query.limit),
+      filtered.length,
+      query.page,
+      query.limit,
+      { tenantId: context.tenantId },
+    );
   }
 
-  async getById(id: string) {
-    const item = this.store.get(id);
+  async getById(context: AuthContext, id: string) {
+    assertPermission(context, PERMISSIONS.CONTACT_READ);
+    const item = this.store.get(context.tenantId, id);
     if (!item) throw new NotFoundException(errorResponse("NOT_FOUND", `Contact ${id} not found`));
-    return successResponse(item);
+    return successResponse(item, { tenantId: context.tenantId });
   }
 
-  async create(body: any) {
-    const id = body.id ?? crypto.randomUUID();
-    const contact = {
-      id,
+  async create(context: AuthContext, body: ContactCreateRequest) {
+    assertPermission(context, PERMISSIONS.CONTACT_WRITE);
+    const now = new Date().toISOString();
+    const contact: ContactResponse = {
+      id: crypto.randomUUID(),
+      tenantId: context.tenantId,
       ...body,
+      email: body.email ?? null,
+      phone: body.phone ?? null,
+      contactType: body.contactType ?? "other",
       tags: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
-    this.store.set(id, contact);
-    return successResponse(contact);
+    this.store.set(contact);
+    this.activities.record(context, {
+      action: "contact.created",
+      targetType: "contact",
+      targetId: contact.id,
+    });
+    return successResponse(contact, { tenantId: context.tenantId });
   }
 }

@@ -32,8 +32,9 @@ export interface SearchResult {
 export function createTestSearchService(): SearchService {
   const docs = new Map<string, SearchDocument>();
   return {
-    async index(_ctx, doc) {
-      docs.set(`${doc.type}:${doc.id}`, doc);
+    async index(ctx, doc) {
+      if (doc.tenantId !== ctx.tenantId) throw new Error("Cross-tenant search write denied");
+      docs.set(`${ctx.tenantId}:${doc.type}:${doc.id}`, doc);
     },
     async search(ctx, query) {
       const matches = [...docs.values()].filter(
@@ -46,8 +47,8 @@ export function createTestSearchService(): SearchService {
         limit: query.limit,
       };
     },
-    async delete(_ctx, type, id) {
-      docs.delete(`${type}:${id}`);
+    async delete(ctx, type, id) {
+      docs.delete(`${ctx.tenantId}:${type}:${id}`);
     },
   };
 }

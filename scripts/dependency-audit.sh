@@ -2,6 +2,7 @@
 set -e
 cd "$(dirname "$0")/.." || exit 1
 
-# Audit dependencies for vulnerabilities (non-blocking during foundation)
-pnpm audit:deps || true
+# Preserve failures so verification cannot report a false green when the
+# registry is unavailable or findings exceed the configured threshold.
+pnpm audit:deps
 echo "dependency audit: ok"

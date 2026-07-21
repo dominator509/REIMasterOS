@@ -1,66 +1,100 @@
+# Enterprise self-host skeleton. All secrets are owner-supplied; no paid provider is required.
 name: rei-os-enterprise
+
 services:
   postgres:
-    image: postgis/postgis:16-3.4
+    image: "${POSTGRES_IMAGE:-postgis/postgis:16-3.4}"
     environment:
-      POSTGRES_DB: ${DB_NAME:-rei_os}
-      POSTGRES_USER: ${DB_USER:-rei}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports: ["5432:5432"]
+      POSTGRES_DB: "${DB_NAME:-rei_os}"
+      POSTGRES_USER: "${DB_USER:-rei}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?set DB_PASSWORD}"
     volumes: [pgdata:/var/lib/postgresql/data]
-    deploy:
-      resources:
-        limits: { memory: 2g }
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
-    image: redis:7-alpine
-    ports: ["6379:6379"]
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    image: "${REDIS_IMAGE:-redis:7-alpine}"
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?set REDIS_PASSWORD}"
 
   minio:
-    image: minio/minio:latest
+    image: "${MINIO_IMAGE:-minio/minio:latest}"
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
-    ports: ["9000:9000", "9001:9001"]
+      MINIO_ROOT_USER: "${MINIO_USER:?set MINIO_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_PASSWORD:?set MINIO_PASSWORD}"
     volumes: [miniodata:/data]
 
   opensearch:
-    image: opensearchproject/opensearch:2
+    image: "${OPENSEARCH_IMAGE:-opensearchproject/opensearch:2}"
     environment:
       discovery.type: single-node
-      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_PASSWORD}
-    ports: ["9200:9200"]
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "${OPENSEARCH_PASSWORD:?set OPENSEARCH_PASSWORD}"
     volumes: [osdata:/usr/share/opensearch/data]
 
   api:
-    build: { context: ../.., dockerfile: Dockerfile }
+    image: "${API_IMAGE:?set API_IMAGE to an immutable release reference}"
+    environment:
+      NODE_ENV: production
+      APP_ENV: production
+      API_PORT: "3001"
+      APP_BASE_URL: "${APP_BASE_URL:?set APP_BASE_URL}"
+      API_BASE_URL: "${API_BASE_URL:?set API_BASE_URL}"
+      DATABASE_URL: "postgresql://${DB_USER:-rei}:${DB_PASSWORD:?set DB_PASSWORD}@postgres:5432/${DB_NAME:-rei_os}"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379/0"
+      SEARCH_PROVIDER: opensearch
+      SEARCH_URL: https://opensearch:9200
+      OBJECT_STORAGE_PROVIDER: minio
+      OBJECT_STORAGE_BUCKET: "${OBJECT_STORAGE_BUCKET:-rei-os}"
+      OBJECT_STORAGE_ENDPOINT: http://minio:9000
+      OBJECT_STORAGE_ACCESS_KEY_ID: "${MINIO_USER:?set MINIO_USER}"
+      OBJECT_STORAGE_SECRET_ACCESS_KEY: "${MINIO_PASSWORD:?set MINIO_PASSWORD}"
+      AUTH_PROVIDER: built-in
+      SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET}"
+      ENCRYPTION_KEY: "${ENCRYPTION_KEY:?set ENCRYPTION_KEY}"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:?set CORS_ALLOWED_ORIGINS}"
     ports: ["3001:3001"]
-    env_file: [../../.env]
     depends_on: [postgres, redis, minio, opensearch]
-    deploy:
-      replicas: 2
-      resources:
-        limits: { memory: 512m }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   web:
-    build: { context: ../.., dockerfile: apps/web/Dockerfile }
+    image: "${WEB_IMAGE:?set WEB_IMAGE to an immutable release reference}"
+    environment:
+      NODE_ENV: production
+      API_BASE_URL: http://api:3001
     ports: ["3000:3000"]
-    depends_on: [api]
-    deploy:
-      replicas: 2
+    depends_on:
+      api:
+        condition: service_healthy
+
+  otel-collector:
+    image: "${OTEL_COLLECTOR_IMAGE:-otel/opentelemetry-collector-contrib:latest}"
+    command: ["--config=/etc/otelcol/config.yml"]
+    volumes:
+      - ../otel/collector-config.yml:/etc/otelcol/config.yml:ro
 
   prometheus:
-    image: prom/prometheus:latest
-    ports: ["9090:9090"]
-    volumes: [./prometheus.yml:/etc/prometheus/prometheus.yml]
+    image: "${PROMETHEUS_IMAGE:-prom/prometheus:latest}"
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    depends_on: [otel-collector]
 
   grafana:
-    image: grafana/grafana:latest
-    ports: ["3002:3000"]
+    image: "${GRAFANA_IMAGE:-grafana/grafana:latest}"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_PASSWORD:?set GRAFANA_PASSWORD}"
+    volumes:
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus]
 
 volumes:
   pgdata:

@@ -7,6 +7,7 @@ export interface Money {
 }
 
 export function usd(amountCents: number): Money {
+  if (!Number.isFinite(amountCents)) throw new Error("Money amount must be finite");
   return { amountCents: Math.round(amountCents), currency: "USD" };
 }
 
@@ -29,6 +30,7 @@ export function subtractMoney(a: Money, b: Money): Money {
 }
 
 export function multiplyMoney(money: Money, factor: number): Money {
+  if (!Number.isFinite(factor)) throw new Error("Money factor must be finite");
   return usd(Math.round(money.amountCents * factor));
 }
 

@@ -7,10 +7,12 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
-    "test:e2e": "echo 'e2e tests: not implemented yet' && exit 1",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "prebuild": "node ../../scripts/clean-next-output.mjs",
     "build": "next build"
   },
   "dependencies": {
+    "@rei-os/contracts": "workspace:*",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -20,7 +22,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^2.1.0",
+    "vitest": "^3.2.6",
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.1.0"
   }

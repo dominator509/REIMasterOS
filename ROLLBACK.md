@@ -117,17 +117,84 @@ Include:
 - Owners and deadlines.
 - Tests/alerts/docs added.
 
-## EP-010 Rollback Verification (2026-07-09)
+## EP-010 Rollback Evidence Review (2026-07-19)
 
-### Rollback Strategy
+Rollback commands and acceptance criteria are documented, and Helm/Compose templates received
+local structural validation. No previous/current published digest pair, deployed revision,
+compatible database state, backup checksum, target smoke result, monitoring evidence, timing, or
+rollback owner exists. Consequently no rollback drill has passed. Performing a staging or
+production rollback without environment authority would exceed this audit; production rollback
+or restore remains an explicit STOP condition.
 
-1. Database migrations are versioned under `db/migrations/` with sequential IDs
-2. Docker Compose profiles allow service-level rollback via image tags
-3. Helm charts support `helm rollback`
-4. CI/CD pipeline gates prevent unreviewed deployments
+## EP-009 Immutable-Artifact Rollback Drill
 
-### Verified
+Before a release, record these values outside the repository in the environment's
+release record:
 
-- `git diff --name-only` shows only expected deployment/docs files
-- No destructive operations run by any script unless explicitly requested
-- All STOP conditions documented in AGENTS.md remain active
+- current and previous API image digests;
+- current and previous web image digests;
+- Compose project/profile or Helm release, namespace, and revision;
+- database schema version before and after migration;
+- backup checksum and isolated restore-verification result;
+- config/Secret version and rollback owner;
+- smoke and monitoring evidence before and after the drill.
+
+### Compose application rollback
+
+1. Confirm the database is sound. If it is, do not restore it.
+2. Set `API_IMAGE` and `WEB_IMAGE` in the operator-owned release environment to
+   the recorded previous immutable references.
+3. With explicit environment-owner authority, reconcile only the `api` and `web`
+   services in `infra/compose/enterprise-self-host.yml`:
+
+   ```sh
+   docker compose --env-file <operator-env-file> \
+     -f infra/compose/enterprise-self-host.yml \
+     up -d --no-deps api web
+   ```
+
+   Do not remove volumes or recreate authoritative data services.
+
+4. Run the target-aware smoke command from `RELEASE.md`, verify error/latency
+   telemetry, and record the result.
+
+### Helm application rollback
+
+1. Inspect Helm history and confirm the prior revision uses the recorded images
+   and compatible configuration:
+
+   ```sh
+   helm history <release> --namespace <namespace>
+   ```
+
+2. With explicit environment-owner authority, roll back to that revision using
+   the recorded release, namespace, and revision:
+
+   ```sh
+   helm rollback <release> <revision> \
+     --namespace <namespace> \
+     --wait \
+     --timeout 10m
+   ```
+
+   Do not add `--force` or alter Secret values during the first rollback attempt.
+
+3. Wait for API/web readiness, run the target-aware smoke command, verify
+   monitoring, and record the revision and result.
+
+### Migration/data incident
+
+The repository currently provides forward-only `VNNN__*.sql` migrations and does
+not prove a safe down migration. Never improvise reverse SQL. If the old
+application is schema-compatible, prefer application rollback while leaving the
+database unchanged. Otherwise pause writes and follow the approved isolated
+restore procedure in `OPERATIONS.md`; production restore is destructive/high risk
+and remains a STOP condition requiring explicit approval.
+
+### Drill acceptance
+
+A rollback drill passes only when the prior immutable application artifacts are
+running, both deployed smoke URLs pass, dependency readiness is green, no
+compliance/tenant-isolation alerts fire, and the release record contains timing
+and evidence. EP-009 did not deploy an environment, so no staging or production
+rollback drill is claimed.

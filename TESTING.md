@@ -203,6 +203,14 @@ Fixtures must live in test-specific directories and be named to show they are sy
 - Raw production payloads.
 - Hidden prompt text in user-visible expected outputs.
 
+## Flaky Test Policy
+
+- Treat nondeterminism as a defect: first control clocks, IDs, random input, ports, process cleanup, and fixture ordering, then rerun the same documented command.
+- On a second same-root failure, isolate the narrowest test and record the observed seed, timing, service state, and exact error before changing code.
+- Quarantine is a last resort and requires an owner, a tracking issue, an expiry date, and a Decision Log entry. Quarantined tests remain visible and may not silently pass.
+- Compliance, tenant-isolation, authorization, secret/redaction, hidden-prefix, migration, dependency-audit, security-scan, and smoke checks may not be skipped or quarantined.
+- CI retries are not a substitute for determinism. A retry may gather evidence, but the original failure remains actionable until its root cause is fixed.
+
 ## Required Tests Per Feature
 
 Every feature must include:
@@ -238,3 +246,44 @@ Testing is done only when:
 - Failure states and compliance blocks are covered.
 - Accessibility and security checks are included where applicable.
 - Results are recorded in the active ExecPlan.
+
+## EP-010 Test-Evidence Boundaries (2026-07-19)
+
+The current verifier provides strong deterministic repository evidence, but it does not replace
+runtime validation:
+
+- Server-rendered UI acceptance covers semantic landmarks, accessible names, live regions,
+  compliance status, table alternatives, loading/empty/error states, and keyboard entry points.
+- The UI suite is Vitest/render-level acceptance, not real-browser automation. It has no browser
+  focus-order, keyboard traversal, zoom/reflow, contrast, screen-reader, or assistive-technology
+  evidence, and it does not use Playwright or an automated accessibility engine.
+- No representative performance/load suite exists for search, workers, direct-mail rendering,
+  voice, or the LLM gateway. Documented SLOs are targets only.
+- The live PostgreSQL isolation test is opt-in and was skipped in the EP-010 full verification
+  because no target database was configured.
+- Provider and AI tests use synthetic mocks and fail-closed adapters; they do not prove a live
+  paid provider, hosted model, webhook secret, or outreach path.
+
+These gaps are launch blockers, not test failures: the implemented local behaviors pass, while
+production-only evidence remains absent.
+
+## EP-007 Coverage Audit (2026-07-18)
+
+This is a source-to-spec coverage map, not a percentage claim. No coverage reporter is configured, and test counts alone do not prove production readiness.
+
+| Area          | Current evidence                                                                                                                                                                        | Critical gaps routed to EP-007                                                                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain        | Entity/value-object, deal math, negotiation safety, permissions, campaign, approval, compliance, activity, provider-fallback, and AI action-policy unit tests                           | Add a consolidated suppression matrix proving DNC, opt-out, unsubscribe, consent, quiet-hours, and recording gates cannot regress                                                              |
+| Persistence   | Migration shape/runner, recording repositories, canonical tenant filters, encrypted credential metadata, and opt-in live PostgreSQL isolation                                           | Expand cross-tenant denial across canonical read/write seams; the live database test remains explicitly opt-in and backup/restore is an operations concern                                     |
+| API           | Contract validation, auth/session, CSRF/headers/rate limits, tenant-scoped services, approval/MFA, campaign compliance, audit/redaction, webhook signature failure, and full Nest graph | Add worker-style policy recheck coverage and broader provider failure contracts; built-in login has no HTTP/persistent identity path yet                                                       |
+| UI            | Server-rendered acceptance for shell, primary resource states, accessibility semantics, compliance/approval, imports/exports, AI disabled state, and cost/provider state                | Tests are render-level Vitest acceptance, not live-browser automation; authenticated login/tenant selection and real write flows are absent                                                    |
+| Auth/security | Signed expiry-bound sessions, deny-by-default identity/step-up, role/delegation denial, tenant guards, high-risk expiry/MFA, CORS/CSRF/header/rate-limit/redaction tests                | Durable sessions/users, real MFA enrollment, distributed rate limits, and browser session propagation remain later implementation work                                                         |
+| Compliance    | Domain verdict tests and API campaign launch tests cover `allowed`, `blocked`, and `needs_approval`                                                                                     | Add a table-driven regression matrix and explicit stale-job/worker recheck boundary; never add raw DNC fixtures                                                                                |
+| AI            | Domain action classification and an API/UI disabled gateway state                                                                                                                       | No AI gateway, prompt compiler, streaming sanitizer, prefix hash/version, or provider-separated cache telemetry exists; add contract-level safety/cache stubs without enabling model calls     |
+| Providers     | Domain fallback selection, disabled health projection, and webhook verifier deny/accept mocks                                                                                           | No `packages/adapters`, `services`, or `workers` tree exists; add interface-level mocked contracts for email, direct mail, voice, disabled SMS, property CSV, DNC verdicts, and webhook errors |
+| Observability | Recursive API/package redaction, health projection, audit lifecycle, smoke checks, and static monitoring assets                                                                         | Metrics interfaces are not backed by a runtime registry; add deterministic provider/AI cache metric contract tests and keep deployment provisioning for later plans                            |
+| Deployment/CI | Local full verify, Compose/build/smoke scripts, and a single documented CI verification entrypoint                                                                                      | Hosted Actions execution still requires a configured remote; the local verifier now includes E2E, security, dependency audit, and smoke as blocking checks                                     |
+
+The repository has no `services/` or `workers/` implementation yet. EP-007 will use package/API contract seams for missing gateway/adapter/worker boundaries and will record those dependencies rather than inventing live runtimes.
+
+CI runs `sh scripts/verify.sh`, the documented full-verification entrypoint. That script performs frozen installation, lint, formatting, type checking, unit and integration tests, build, E2E acceptance tests, local security scan, dependency audit, and smoke tests in order; every step is blocking.

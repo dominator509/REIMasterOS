@@ -49,4 +49,7 @@ describe("canAiModifyField", () => {
     expect(canAiModifyField("notes")).toBe(true);
     expect(canAiModifyField("tags")).toBe(true);
   });
+  it("denies unknown fields by default", () => {
+    expect(canAiModifyField("futureAuthoritativeField")).toBe(false);
+  });
 });

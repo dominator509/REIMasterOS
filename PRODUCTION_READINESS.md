@@ -187,71 +187,79 @@ Launch is allowed only when:
 - [ ] Support readiness complete.
 - [ ] Final launch gate approved.
 
-## EP-010 Readiness Report (2026-07-09)
+## EP-010 Readiness Report (2026-07-19)
 
-### Verification Status
+### Launch Decision
 
-| Check                       | Status | Evidence                                        |
-| --------------------------- | ------ | ----------------------------------------------- |
-| TypeScript typecheck        | PASS   | `pnpm typecheck` — 7/7 tasks                    |
-| ESLint                      | PASS   | `pnpm lint` — no issues                         |
-| Prettier                    | PASS   | `pnpm format:check` — all matched               |
-| Unit tests                  | PASS   | `pnpm test:unit` — 7/7 suites                   |
-| Integration tests           | PASS   | `pnpm test:integration` — 2/2 tasks             |
-| Build                       | PASS   | `pnpm build` — 7/7 tasks (6 success + 1 cached) |
-| Smoke test                  | PASS   | `pnpm smoke` — 4/4 passed                       |
-| Full verify                 | PASS   | `sh scripts/verify.sh` — `verify: ok`           |
-| CI workflow                 | PASS   | `.github/workflows/ci.yml` exists               |
-| Docker Compose (solo)       | PASS   | `infra/compose/solo-budget.yml`                 |
-| Docker Compose (hybrid)     | PASS   | `infra/compose/hybrid-cheap.yml`                |
-| Docker Compose (vendor)     | PASS   | `infra/compose/vendor-fast.yml`                 |
-| Docker Compose (enterprise) | PASS   | `infra/compose/enterprise-self-host.yml`        |
-| Dockerfiles                 | PASS   | Root `Dockerfile` + `apps/web/Dockerfile`       |
-| Helm skeleton               | PASS   | `infra/helm/Chart.yaml` + `values.yaml`         |
-| Prometheus config           | PASS   | `infra/prometheus/prometheus.yml`               |
-| Grafana dashboard           | PASS   | `infra/grafana/dashboards/overview.json`        |
-| OTEL config                 | PASS   | `infra/otel/collector-config.yml`               |
-| .env.example                | PASS   | Exists with all required vars                   |
-| .gitignore                  | PASS   | Covers all tool caches and secrets              |
-| .dockerignore               | PASS   | Excludes node_modules, .env, logs               |
-| Preflight                   | PASS   | `sh scripts/preflight.sh` → `preflight: ok`     |
+**NO-GO for staging or production launch.**
 
-### Production Readiness Score
+Repository-local implementation and verification are green, but production readiness requires
+runtime, data-recovery, deployment, performance, accessibility, ownership, and release evidence
+that does not exist in this checkout. No production deployment, migration, live provider call,
+or live outreach was authorized or attempted.
 
-**8/10 — Ready for Phase 1 deployment with caveats.**
+### Evidence Matrix
+
+| Area                           | Current evidence                                                                                                                                                               | Status                                                                                                                              |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Full repository verification   | `sh scripts/verify.sh` passed after EP-009 and again at EP-010 milestone 1                                                                                                     | PASS (local)                                                                                                                        |
+| Unit/integration/acceptance    | 92 domain, 42 API, 24 persistence plus one opt-in live-PostgreSQL skip, 17 observability, 13 contracts, 11 config, 6 adapter, 4 web unit, and 18 render-level E2E tests passed | PASS (local)                                                                                                                        |
+| Build and package boundaries   | API and web production builds pass; both local images built and started as non-root processes                                                                                  | PASS (local)                                                                                                                        |
+| Security/dependencies          | Local secret-pattern scan passed; dependency audit reported zero known vulnerabilities                                                                                         | PASS (local)                                                                                                                        |
+| Compliance and isolation       | Tenant, RBAC, approval, DNC suppression, worker-policy recheck, redaction, and hidden-prefix regressions pass                                                                  | PASS (local)                                                                                                                        |
+| Persistence runtime            | PostgreSQL migration/repository contracts exist; the live database test was not configured and API stores remain process-local                                                 | BLOCKED                                                                                                                             |
+| Authentication and credentials | Fail-closed sessions/approvals and encrypted-byte repository contract exist; durable identity/session/audit, real MFA, and runtime credential encryption are absent            | BLOCKED                                                                                                                             |
+| Webhooks and providers         | Provider interfaces and mocks exist; runtime verifier is deny-all and live adapters/credentials are not configured                                                             | BLOCKED                                                                                                                             |
+| Privacy/retention              | Data classes and safety rules are documented                                                                                                                                   | BLOCKED: no retention/deletion enforcement or target evidence                                                                       |
+| Accessibility                  | Semantic render-level acceptance passes                                                                                                                                        | PARTIAL: no real-browser, keyboard traversal, contrast, zoom/reflow, or assistive-technology audit                                  |
+| Performance                    | SLO/SLI targets and cache telemetry contracts are documented                                                                                                                   | BLOCKED: no representative search, worker, mail, voice, or LLM benchmark                                                            |
+| Observability                  | Redacted telemetry contracts and OTel/Prometheus/Grafana/alert skeletons validate structurally                                                                                 | BLOCKED: no runtime exporter, scrape, alert delivery, retention, or monitoring owner                                                |
+| Deployment artifacts           | Compose profiles validate; API/web images start; Helm lint/render passed with synthetic references                                                                             | PASS (artifact dry run only)                                                                                                        |
+| Deployment target              | Target-aware read-only smoke support exists                                                                                                                                    | BLOCKED: no staging target, DNS/TLS, Secrets, registry artifacts, or target smoke                                                   |
+| Backup/restore                 | Procedure is documented                                                                                                                                                        | BLOCKED: no archive, checksum, isolated restore, timing, schema verification, or verifier                                           |
+| Rollback                       | Immutable-artifact procedures and checks are documented                                                                                                                        | BLOCKED: no deployed revision/digest pair or completed drill                                                                        |
+| Release governance             | Local branch is known                                                                                                                                                          | BLOCKED: no remote, protected workflow, version, changelog, SBOM, notices, publishing authority, launch owner, or explicit approval |
+
+The repository readiness script also passes, but it explicitly validates artifacts only and is
+not deployment or runtime proof. The eight offline smoke checks pass; target-aware smoke was not
+run because no approved target URLs were configured.
 
 ### Launch Blockers
 
-None. All verification checks pass.
+1. Replace process-local API identity, session, audit, and domain stores with durable
+   tenant-isolated persistence and prove connected database readiness.
+2. Implement an owner-configured MFA/step-up path and runtime encryption/secret-store lifecycle
+   for provider credentials.
+3. Configure provider-specific webhook verification before enabling any webhook/provider route.
+4. Implement and verify retention/deletion controls for protected data classes.
+5. Wire runtime metrics/traces/log transport and dependency probes; deploy dashboards/alerts and
+   assign monitoring/incident ownership.
+6. Measure representative search, worker, direct-mail, voice (if enabled), and LLM/cache
+   workloads against approved SLOs.
+7. Complete a real-browser and manual accessibility audit for primary workflows.
+8. Produce an encrypted backup, verify an isolated restore, and record checksum, schema version,
+   duration, integrity checks, and verifier.
+9. Select a staging target, immutable published artifacts, DNS/TLS, owner-managed Secrets, and
+   run connected readiness plus target smoke.
+10. Complete a staging rollback drill using recorded current/previous artifacts and database
+    compatibility evidence.
+11. Configure the source remote/protected workflow and release governance; generate versioned
+    release notes/changelog, SBOM, third-party notices, and required license review.
+12. Assign a named launch owner, support/escalation contacts, monitoring owner, and explicit
+    go/no-go approval.
 
 ### Accepted Risks
 
-| Risk                                                | Owner         | Mitigation                                             | Review Date              |
-| --------------------------------------------------- | ------------- | ------------------------------------------------------ | ------------------------ |
-| 23 npm audit vulnerabilities (1 critical in multer) | Platform team | NestJS dependency chain; update when patches available | 2026-08-01               |
-| E2E tests are placeholder stubs                     | QA            | EP-005 UI tests will add Playwright-based E2E          | 2026-08-01               |
-| AI features not yet wired to actual LLM             | AI team       | AI gateway service to be built post-MVP                | 2026-09-01               |
-| No HTTPS/TLS in default Compose                     | DevOps        | Add nginx/caddy reverse proxy for production           | Before production deploy |
-| In-memory stores in API services                    | Engineering   | Wire to persistence layer (EP-003 repos)               | 2026-08-01               |
+None are formally accepted. Repository role labels such as Platform or Operations are not
+evidence of a named owner, approval date, mitigation commitment, or review date.
 
-### Package Inventory
+### Production-Readiness Criteria
 
-| Package               | Status   | Tests                                                                                                     |
-| --------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
-| @rei-os/domain        | Complete | 71 tests — entities, value objects, compliance, deal math, negotiation, providers, AI policy, permissions |
-| @rei-os/contracts     | Complete | 15 tests — property, contact, lead, pagination, API schemas, error codes                                  |
-| @rei-os/config        | Complete | 7 tests — env validation, auth config                                                                     |
-| @rei-os/testing       | Complete | TypeScript compilation passing                                                                            |
-| @rei-os/persistence   | Complete | 7 tests — repositories, search, storage, cache stubs                                                      |
-| @rei-os/observability | Complete | 6 tests — redaction, DNC detection                                                                        |
-| @rei-os/api           | Complete | 9 tests — health, properties, compliance                                                                  |
-| @rei-os/web           | Complete | Dashboard shell with 9 routes                                                                             |
+- Functional/test/security repository gates: **passed locally for implemented scope**.
+- Privacy/performance/accessibility/observability/deployment/rollback/data/support gates:
+  **partial or blocked**.
+- Explicit deployment permission: **absent**.
+- Final launch gate: **failed (NO-GO)**.
 
-### Next Steps
-
-1. Wire persistence layer (EP-003 repositories) into API services
-2. Add Playwright E2E tests for critical UI flows
-3. Implement AI gateway service for Hermes/DeepSeek integration
-4. Set up actual OpenTelemetry instrumentation
-5. Security penetration testing before production
-6. Database backup/restore drill
+The codebase is a validated local development/release-artifact baseline, not a production-ready
+deployment.

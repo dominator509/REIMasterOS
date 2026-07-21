@@ -83,6 +83,7 @@ CREATE INDEX idx_contacts_tenant ON contacts(tenant_id);
 
 CREATE TABLE contact_points (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
   contact_id UUID NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
   value TEXT NOT NULL,
@@ -92,6 +93,7 @@ CREATE TABLE contact_points (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_contact_points_contact ON contact_points(contact_id);
+CREATE INDEX idx_contact_points_tenant ON contact_points(tenant_id);
 
 CREATE TABLE lead_lists (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -190,7 +192,8 @@ CREATE TABLE provider_credentials (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   tenant_id UUID NOT NULL REFERENCES tenants(id),
   provider TEXT NOT NULL,
-  config JSONB DEFAULT '{}',
+  metadata JSONB NOT NULL DEFAULT '{}',
+  encrypted_payload BYTEA NOT NULL,
   is_enabled BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -208,3 +211,17 @@ CREATE TABLE object_artifacts (
   UNIQUE(tenant_id, bucket, key)
 );
 CREATE INDEX idx_object_artifacts_tenant ON object_artifacts(tenant_id);
+
+CREATE TABLE approval_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  action TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  requested_by UUID REFERENCES users(id),
+  approved_by UUID REFERENCES users(id),
+  evidence_refs JSONB NOT NULL DEFAULT '[]',
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_approval_requests_tenant ON approval_requests(tenant_id, status);

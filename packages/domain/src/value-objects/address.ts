@@ -78,7 +78,7 @@ export function createAddress(params: {
   if (!params.street.trim()) throw new Error("Street is required");
   if (!params.city.trim()) throw new Error("City is required");
   if (!isValidState(params.state)) throw new Error(`Invalid state: ${params.state}`);
-  if (!/^\d{5}(-?\d{4})?$/.test(params.zip)) throw new Error(`Invalid ZIP: ${params.zip}`);
+  if (!/^\d{5}(?:-\d{4})?$/.test(params.zip)) throw new Error(`Invalid ZIP: ${params.zip}`);
   return {
     street: params.street.trim(),
     street2: params.street2?.trim(),

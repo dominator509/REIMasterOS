@@ -27,6 +27,20 @@ const SENSITIVE_FIELDS = [
   "hidden_prefix",
   "rawPrompt",
   "raw_prompt",
+  "compiledPrompt",
+  "compiled_prompt",
+  "providerPayload",
+  "provider_payload",
+  "authorization",
+  "cookie",
+  "mfaCode",
+  "mfa_code",
+  "email",
+  "phone",
+  "address",
+  "transcript",
+  "recording",
+  "payment",
 ];
 
 const REDACTED_VALUE = "[REDACTED]";
@@ -60,7 +74,7 @@ export function redact(obj: Record<string, unknown>, depth: number = 0): Record<
 /** Ensure DNC data never appears in logs. */
 export function hasDncData(obj: Record<string, unknown>): boolean {
   const json = JSON.stringify(obj).toLowerCase();
-  return /\bdnc\b/.test(json) || /\bdo.?not.?call\b/i.test(json);
+  return /(?:^|[^a-z0-9])dnc(?:$|[^a-z0-9])/u.test(json) || /\bdo.?not.?call\b/iu.test(json);
 }
 
 export function sanitizeForLogging(obj: Record<string, unknown>): Record<string, unknown> {

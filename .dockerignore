@@ -8,6 +8,9 @@ dist/
 !.env.example
 coverage/
 test-results/
+**/__tests__/
+**/*.test.*
+**/*.spec.*
 *.log
 .obsidian/
 .serena/cache/

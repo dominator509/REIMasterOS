@@ -1,22 +1,120 @@
 {
-  "title": "REI-OS Overview",
+  "title": "REI-OS Operations Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
   "panels": [
     {
-      "title": "API Request Rate",
-      "type": "graph",
-      "targets": [{ "expr": "rate(api_request_count[5m])" }]
-    },
-    {
-      "title": "Compliance Checks",
+      "id": 1,
+      "title": "System targets up",
       "type": "stat",
-      "targets": [{ "expr": "compliance_check_count" }]
+      "description": "Text status for self-hosted telemetry targets.",
+      "targets": [{ "expr": "sum(up)", "legendFormat": "targets up" }]
     },
     {
-      "title": "AI Cache Hit Rate",
-      "type": "gauge",
+      "id": 2,
+      "title": "API request and error rate",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(rate(rei_api_requests_total[5m]))", "legendFormat": "requests" },
+        { "expr": "sum(rate(rei_api_errors_total[5m]))", "legendFormat": "errors" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Worker queue age",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "max by (queue) (rei_worker_queue_age_seconds)", "legendFormat": "{{queue}}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Campaign delivery by channel and status",
+      "type": "timeseries",
       "targets": [
         {
-          "expr": "rate(ai_cache_hit_count[5m]) / (rate(ai_cache_hit_count[5m]) + rate(ai_cache_miss_count[5m]))"
+          "expr": "sum by (channel, status) (rate(rei_campaign_events_total[5m]))",
+          "legendFormat": "{{channel}} {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Compliance verdicts",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (verdict, channel) (rate(rei_compliance_verdicts_total[5m]))",
+          "legendFormat": "{{channel}} {{verdict}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Provider outcomes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (provider, status) (rate(rei_provider_calls_total[5m]))",
+          "legendFormat": "{{provider}} {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "AI request cache outcomes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (provider, cache_hit) (rate(rei_ai_cache_requests_total[5m]))",
+          "legendFormat": "{{provider}} hit={{cache_hit}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Provider estimated cost (USD)",
+      "type": "table",
+      "description": "Text table alternative for provider/channel cost state.",
+      "targets": [
+        {
+          "expr": "sum by (provider, channel) (rei_provider_cost_estimate_usd)",
+          "legendFormat": "{{provider}} {{channel}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Search p95 latency",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(rei_search_query_duration_ms_bucket[5m])))",
+          "legendFormat": "p95 ms"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Voice event p95 latency",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, event) (rate(rei_voice_event_duration_ms_bucket[5m])))",
+          "legendFormat": "{{event}} p95 ms"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Property import outcomes",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "sum by (status) (increase(rei_property_imports_total[1h]))",
+          "legendFormat": "{{status}}"
         }
       ]
     }

@@ -18,6 +18,7 @@ describe("EntityId", () => {
   it("rejects empty ids", () => {
     expect(() => toTenantId("")).toThrow();
     expect(() => toEntityId("")).toThrow();
+    expect(() => toTenantId("   ")).toThrow();
   });
 });
 
@@ -30,6 +31,9 @@ describe("Address", () => {
   it("validates ZIP", () => {
     expect(() =>
       createAddress({ street: "123 Main", city: "Austin", state: "TX", zip: "abc" }),
+    ).toThrow();
+    expect(() =>
+      createAddress({ street: "123 Main", city: "Austin", state: "TX", zip: "787011234" }),
     ).toThrow();
     expect(
       createAddress({ street: "123 Main", city: "Austin", state: "TX", zip: "78701" }),
@@ -58,5 +62,9 @@ describe("ContactPoint", () => {
   it("creates with unverified status", () => {
     const cp = createContactPoint({ type: "email", value: "test@example.com" });
     expect(cp.status).toBe("unverified");
+  });
+  it("rejects malformed contact points", () => {
+    expect(() => createContactPoint({ type: "email", value: "not-an-email" })).toThrow();
+    expect(() => createContactPoint({ type: "phone", value: "12" })).toThrow();
   });
 });

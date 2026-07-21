@@ -19,15 +19,16 @@
     },
     "test:unit": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "cache": false
     },
     "test:integration": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "cache": false,
+      "passThroughEnv": ["REI_OS_RUN_DB_INTEGRATION", "DATABASE_URL"]
     },
     "test:e2e": {
       "dependsOn": ["build"],
-      "outputs": ["test-results/**"]
+      "cache": false
     },
     "db:migrate": {
       "cache": false

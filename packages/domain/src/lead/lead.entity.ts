@@ -26,6 +26,7 @@ export function createLead(params: {
   propertyId: string;
   ownerId: string;
   source?: LeadSource;
+  now: Date;
 }): Lead {
   return {
     id: params.id,
@@ -36,8 +37,8 @@ export function createLead(params: {
     score: 0,
     status: "new",
     notes: "",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }
 

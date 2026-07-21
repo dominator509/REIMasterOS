@@ -190,24 +190,33 @@ General recovery:
 
 Initial state: Not started. Requires EP-001 foundation and EP-002 domain or equivalent existing packages.
 
-- [ ] Milestone 1: Create persistence package and migration tooling — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 2: Implement initial canonical schema — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 3: Implement repositories with tenant isolation — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 4: Add search/storage/cache projection boundaries — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 5: Document backup/restore and final persistence review — validation `sh scripts/verify.sh` passed and result recorded.
+- [x] Milestone 1: Create persistence package and migration tooling — 2026-07-18 `pnpm db:migrate` applied V001 to local PostGIS and a second run skipped it idempotently; `sh scripts/test-integration.sh` passed.
+- [x] Milestone 2: Implement initial canonical schema — 2026-07-18 V001 applied from an empty REIMasterOS schema; migration/schema tests and live repository test passed.
+- [x] Milestone 3: Implement repositories with tenant isolation — 2026-07-18 canonical owner/list/task/activity/compliance/approval/credential metadata repositories added; uncached live PostgreSQL isolation test passed (persistence 6 files / 23 tests).
+- [x] Milestone 4: Add search/storage/cache projection boundaries — 2026-07-10 `sh scripts/test-integration.sh` passed; persistence suite 4 files / 18 tests, including cross-tenant search, object-key, and cache isolation.
+- [x] Milestone 5: Document backup/restore and final persistence review — 2026-07-18 `sh scripts/verify.sh` passed (`verify: ok`); restore verification and projection recovery boundaries documented.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: Initial schema may implement a core subset but must not use names that conflict with full SPEC-002 path.
+- 2026-07-10 audit: Existing repository isolation test was ineffective because the fake database always returned an empty result. The recording test connection now verifies tenant parameters, and property writes reject mismatched tenant rows.
+- 2026-07-10 audit: `contact_points` lacked `tenant_id`, provider credentials used a plain JSON `config`, and the documented root migration command targeted the API's no-op placeholder. These were corrected, and a Docker/psql migration runner was added.
+- 2026-07-10 blocker: `pnpm db:setup` failed twice because the Docker engine pipe does not exist. Starting Docker Desktop through Windows control timed out, and `pnpm db:migrate` confirmed the same missing-engine root cause. Per the third-failure rule, no further Docker workaround was attempted.
+- 2026-07-18 recovery: Docker was available, but the full Compose startup timed out and another user-owned container (`dev-postgres-1`) held host port 5432. A configurable `POSTGRES_HOST_PORT` preserved the default while allowing isolated validation on 5433 without stopping the other container.
+- 2026-07-18 audit: Turbo initially replayed a cached integration result even when the live-test opt-in changed. Integration tasks are now uncached and pass through only the database-test environment, preventing environment-gated false greens.
 
 ## 14. Decision Log
 
 - 2026-07-07: Production migration remains STOP condition without explicit permission.
+- 2026-07-10: Root `db:migrate` now targets `@rei-os/persistence`; `packages/persistence/src/migrate.ts` discovers versioned SQL, records applied versions, and runs each unapplied migration transactionally through the documented solo PostGIS service.
+- 2026-07-10: Test search, object storage, and cache adapters include tenant scope in keys and reject cross-tenant access. Provider credential payloads are byte-oriented encrypted storage, with non-secret metadata separated.
+- 2026-07-18: Added the MIT-licensed `pg` client behind `DbConnection` rather than inventing a Docker CLI application adapter or introducing an ORM. Repository values are parameterized; provider credential reads exclude encrypted payloads.
+- 2026-07-18: Added `turbo.json` outside the expected file list because cached environment-gated integration tests could falsely report a skipped live database test as current. `COMMANDS.md` and `SECURITY.md` were also updated as required for command/dependency changes.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: **Complete**.
+- Completed milestones: Milestones 1-5 complete with a real V001 apply, idempotent rerun, canonical repositories, live tenant-isolation proof, projection boundary tests, and backup/restore documentation.
+- Validation summary: `pnpm db:migrate` applied and then skipped V001; uncached live `sh scripts/test-integration.sh` passes with persistence 6 files / 23 tests and API 5 files / 9 tests; final `sh scripts/verify.sh` passed with zero known dependency vulnerabilities.
+- Changed files summary: Migration tooling/schema, real PostgreSQL connection, canonical repositories/tests, tenant-scoped projections, local port recovery, dependency/security/operations docs, command truthfulness, and this ExecPlan.
+- Remaining risks: Production backup/restore remains an operator-approved drill; a search projection rebuild worker is not implemented in EP-003 and search must remain disabled/empty after authoritative restore until that later-layer worker exists.

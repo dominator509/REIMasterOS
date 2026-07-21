@@ -1,30 +1,33 @@
 import { z } from "zod";
 
 export const ErrorCodeSchema = z.enum([
-  "VALIDATION_ERROR",
-  "NOT_FOUND",
-  "UNAUTHORIZED",
+  "VALIDATION_FAILED",
+  "UNAUTHENTICATED",
   "FORBIDDEN",
+  "TENANT_NOT_FOUND",
+  "NOT_FOUND",
+  "CONFLICT",
   "COMPLIANCE_BLOCKED",
   "APPROVAL_REQUIRED",
-  "CONFLICT",
-  "RATE_LIMITED",
+  "PROVIDER_NOT_CONFIGURED",
   "PROVIDER_UNAVAILABLE",
-  "TENANT_NOT_FOUND",
-  "CROSS_TENANT_ACCESS_DENIED",
+  "RATE_LIMITED",
+  "IMPORT_FAILED",
+  "EXPORT_FAILED",
+  "AI_ROUTE_DISABLED",
+  "AI_SANITIZER_BLOCKED",
+  "AI_POLICY_BLOCKED",
+  "MIGRATION_FAILED",
+  "DEPENDENCY_UNAVAILABLE",
   "INTERNAL_ERROR",
-  "SERVICE_UNAVAILABLE",
-  "NOT_IMPLEMENTED",
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
 
 export const ErrorDetailSchema = z.object({
-  code: ErrorCodeSchema,
   message: z.string(),
   field: z.string().optional(),
-  details: z.unknown().optional(),
-  timestamp: z.string().datetime(),
+  code: z.string().optional(),
 });
 
 export type ErrorDetail = z.infer<typeof ErrorDetailSchema>;

@@ -16,7 +16,6 @@ const APPROVAL_MATRIX: Record<HighRiskAction, ApprovalRequirement> = {
     requiresAdminApproval: false,
     requiresComplianceReview: false,
     requiresLegalReview: false,
-    maxAutoApprovalAmountCents: 100_000_00, // $100k
   },
   contract_execution: {
     action: "contract_execution",
@@ -83,6 +82,7 @@ export function getApprovalRequirements(action: HighRiskAction): ApprovalRequire
 export function needsApproval(action: HighRiskAction, amountCents?: number): boolean {
   const req = APPROVAL_MATRIX[action];
   if (!req) return true;
+  if (action === "binding_offer_submission") return true;
   if (req.requiresAdminApproval || req.requiresComplianceReview || req.requiresLegalReview)
     return true;
   if (req.maxAutoApprovalAmountCents !== undefined && amountCents !== undefined) {

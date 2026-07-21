@@ -1,6 +1,6 @@
 import type { DbConnection } from "../connection.js";
 import type { TenantContext, PaginationParams, PaginatedResult } from "../repository.interface.js";
-import { paginatedResult } from "../repository.interface.js";
+import { assertTenantContext, paginatedResult } from "../repository.interface.js";
 
 export interface PropertyRow {
   id: string;
@@ -26,6 +26,7 @@ export class PropertyRepository {
   constructor(private readonly db: DbConnection) {}
 
   async findById(ctx: TenantContext, id: string): Promise<PropertyRow | null> {
+    assertTenantContext(ctx);
     const rows = await this.db.query<PropertyRow>(
       "SELECT * FROM properties WHERE id = $1 AND tenant_id = $2",
       [id, ctx.tenantId],
@@ -37,6 +38,7 @@ export class PropertyRepository {
     ctx: TenantContext,
     params: PaginationParams,
   ): Promise<PaginatedResult<PropertyRow>> {
+    assertTenantContext(ctx);
     const countRows = await this.db.query<{ count: string }>(
       "SELECT COUNT(*) as count FROM properties WHERE tenant_id = $1",
       [ctx.tenantId],
@@ -50,6 +52,8 @@ export class PropertyRepository {
   }
 
   async insert(ctx: TenantContext, row: PropertyRow): Promise<PropertyRow> {
+    assertTenantContext(ctx);
+    if (row.tenant_id !== ctx.tenantId) throw new Error("Cross-tenant property write denied");
     await this.db.execute(
       `INSERT INTO properties (id, tenant_id, street, street2, city, state, zip, county, bedrooms, bathrooms, square_feet, lot_size, year_built, property_type, status, created_at, updated_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
@@ -73,6 +77,6 @@ export class PropertyRepository {
         row.updated_at,
       ],
     );
-    return row;
+    return { ...row, tenant_id: ctx.tenantId };
   }
 }

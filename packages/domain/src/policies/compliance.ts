@@ -84,6 +84,7 @@ export function checkOutreachCompliance(ctx: OutreachContext): ComplianceResult 
       }
       break;
     case "voice":
+    case "ringless_voicemail":
       if (!ctx.consent.canCall) {
         reasons.push("MISSING_CALL_CONSENT");
         approvals.push("call_consent_override");
@@ -91,6 +92,7 @@ export function checkOutreachCompliance(ctx: OutreachContext): ComplianceResult 
       if (!ctx.consent.callRecordingConsent) {
         reasons.push("MISSING_CALL_RECORDING_CONSENT");
         evidence.push("call_recording_policy");
+        approvals.push("call_recording_consent");
       }
       if (!ctx.hasCallRecordingSetup) {
         reasons.push("CALL_RECORDING_NOT_CONFIGURED");
@@ -125,7 +127,10 @@ export function checkOutreachCompliance(ctx: OutreachContext): ComplianceResult 
   }
 
   // Quiet hours
-  if (ctx.isQuietHours && (ctx.channel === "voice" || ctx.channel === "sms")) {
+  if (
+    ctx.isQuietHours &&
+    (ctx.channel === "voice" || ctx.channel === "ringless_voicemail" || ctx.channel === "sms")
+  ) {
     reasons.push("QUIET_HOURS");
     evidence.push("quiet_hours_policy");
     return {

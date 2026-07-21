@@ -22,6 +22,7 @@ export function createContact(params: {
   email?: string;
   phone?: string;
   contactType?: ContactType;
+  now: Date;
 }): Contact {
   return {
     id: params.id,
@@ -32,7 +33,7 @@ export function createContact(params: {
     phone: params.phone,
     contactType: params.contactType ?? "other",
     tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }

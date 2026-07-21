@@ -200,24 +200,37 @@ General recovery:
 
 Initial state: Not started. Requires EP-001 and benefits from EP-003/EP-004/EP-005.
 
-- [ ] Milestone 1: Implement auth configuration and session foundation — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 2: Implement RBAC and tenant isolation enforcement — validation `sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 3: Implement approval and 2FA step-up gates — validation `sh scripts/test-integration.sh && sh scripts/test-e2e.sh` passed and result recorded.
-- [ ] Milestone 4: Add security headers, rate limits, redaction, and audit logs — validation `sh scripts/security-check.sh && sh scripts/test-integration.sh` passed and result recorded.
-- [ ] Milestone 5: Final security/auth review — validation `sh scripts/verify.sh` passed and result recorded.
+- [x] Milestone 1: Implement auth configuration and session foundation — `sh scripts/typecheck.sh` and `sh scripts/test-integration.sh` passed on 2026-07-18; API integration reported 7 files/22 tests passed and persistence reported 22 passed/1 live-Postgres test skipped by its explicit opt-in gate.
+- [x] Milestone 2: Implement RBAC and tenant isolation enforcement — `sh scripts/test-integration.sh` passed on 2026-07-18; API reported 7 files/23 tests passed and persistence reported 24 passed/1 live-Postgres test skipped by its explicit opt-in gate.
+- [x] Milestone 3: Implement approval and 2FA step-up gates — `sh scripts/test-integration.sh` passed on 2026-07-18 with API 8 files/26 tests and persistence 24 passed/1 opt-in live test skipped; prescribed `sh scripts/test-e2e.sh` passed with 5 files/18 tests after a clean Next production build.
+- [x] Milestone 4: Add security headers, rate limits, redaction, and audit logs — `sh scripts/security-check.sh` passed on 2026-07-18; `sh scripts/test-integration.sh` passed with API 9 files/31 tests and persistence 24 passed/1 opt-in live test skipped.
+- [x] Milestone 5: Final security/auth review — `sh scripts/verify.sh` passed on 2026-07-18 in 225.4s, including install, lint, format, typecheck, unit/integration, build, security scan, dependency audit, and 4/4 smoke checks.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: Built-in auth is default; external IdPs are adapters.
+- 2026-07-18: Nest could not infer the new auth service dependency from emitted metadata; explicit injection at both auth consumers restored the full application graph without changing provider scope.
+- 2026-07-18: The first session role allowlist drifted from the canonical domain roles. Importing `ROLES` from `@rei-os/domain` removed the duplicated security vocabulary and made typechecking catch future drift.
+- 2026-07-18: The first missing-tenant negative fixtures called `toTenantId` and failed during fixture construction, before reaching the repository boundary. Branded test-only empty values isolate and prove the repository's own fail-closed behavior.
+- 2026-07-18: The first prescribed E2E attempt exceeded its 180-second wrapper timeout while Turbo completed a clean Next build without streaming output. The narrow web suite passed 18/18, the exact orphaned process tree was cleared, and the prescribed script then passed in 1m37s with a larger validation budget.
+- 2026-07-18: The first Milestone 4 integration run correctly rejected the pre-existing production-cookie fixture because its new production CORS allowlist was absent. Supplying an explicit synthetic HTTPS origin made the fixture represent a valid production configuration.
 
 ## 14. Decision Log
 
 - 2026-07-07: High-risk actions require approval/2FA interfaces even if full UX is phased.
+- 2026-07-18: Use standard-library HMAC-signed, absolute/idle-expiring sessions and scrypt password verification for the reversible built-in foundation; do not add a commercial identity dependency.
+- 2026-07-18: Runtime identity lookup defaults to deny-all until a tenant-scoped store is wired. Production and staging reject placeholder session/encryption secrets, while local development retains explicit non-secret defaults.
+- 2026-07-18: Treat absent/blank user, tenant, or session identifiers as unauthenticated at guards and repository entry points. Delegated permission lists restrict the base role, including an empty deny-all delegation.
+- 2026-07-18: Every approval receives a 15-minute expiry unless a future expiry is supplied; expired records transition once and remain unusable. A shared deterministic high-risk policy requires both session MFA and a current tenant/action-matched approval.
+- 2026-07-18: Production step-up defaults to a deny-all verifier. The only enabled adapter is deterministic and synthetic for test/local development; no TOTP secret or external provider is invented or stored.
+- 2026-07-18: Use credentialed allowlisted CORS, double-submit CSRF, modern deny-by-default API headers, recursive redaction, and a central denial-audit interceptor. HSTS is emitted only for staging/production.
+- 2026-07-18: Use a bounded in-process rate limiter as the single-instance baseline. Distributed multi-instance quota enforcement remains an operations concern and is documented rather than falsely claimed complete.
+- 2026-07-18: `apps/api/src/app.module.ts` and `apps/api/src/main.ts` are justified extra files because middleware ordering and typed CORS must be applied at the Nest bootstrap boundary; `apps/api/src/campaigns/campaigns.service.ts` is justified because the existing live-side-effect seam had to consume the shared high-risk policy.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: Complete on 2026-07-18.
+- Completed milestones: All five, in order.
+- Validation summary: Full `sh scripts/verify.sh` passed. Final API integration coverage is 9 files/31 tests; persistence is 24 passed with the explicit live-Postgres test skipped unless opted in; web acceptance is 5 files/18 tests. Security scan and dependency audit pass with no known vulnerabilities.
+- Changed files summary: Auth/config/session, authorization and tenant repository guards, approval/step-up lifecycle, security middleware/interceptor, audit/redaction, approval UI states/tests, environment/security/observability docs, and ADR-0012. Bootstrap and campaign files are justified extras recorded above.
+- Remaining risks: Runtime identity lookup is deny-all and has no durable user/session store or login controller; real MFA enrollment/verifier is owner-controlled and not configured; server-rendered web requests do not yet forward authenticated sessions; rate-limit and audit stores are single-process/in-memory; live browser automation remains deferred to EP-007. These prevent production readiness despite green local validation.

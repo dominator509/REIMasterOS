@@ -207,12 +207,16 @@ Initial state: Not started. Complete each milestone in order and record command 
 - [x] Milestone 3: Add baseline tests and smoke harness — 6/6 unit, 2/2 integration, smoke 4/4 pass. E2E placeholder exits 1 (not yet implemented).
 - [x] Milestone 4: Add baseline CI and environment docs — `verify: ok` all 10 steps pass.
 - [x] Milestone 5: Review foundation diff — only expected files changed.
+- [x] 2026-07-09 audit: `sh scripts/verify.sh` passes with fail-closed local security scanning and `pnpm audit` reporting no known vulnerabilities.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: Assumes pnpm + Turbo are acceptable defaults for greenfield TypeScript monorepo.
 - 2026-07-08: pnpm doesn't hoist workspace packages to root `node_modules` by default — added `workspace:*` devDependencies in root `package.json` for smoke test resolution.
 - 2026-07-08: ESLint `no-unused-vars` `caughtErrors` doesn't respect `argsIgnorePattern` — used bare `catch {}` instead.
+- 2026-07-09 audit: Full verification initially failed because local Obsidian settings were inside the Prettier baseline; `.obsidian/` is now excluded without modifying user-owned settings.
+- 2026-07-09 audit: Security and dependency wrappers masked command failures and could print `verify: ok` after a failed scan. The wrappers now preserve exit status.
+- 2026-07-09 audit: The configured `semgrep ci --config auto` path required external rules/network access and was rejected because private source could leave the workspace. It was replaced with a dependency-free local high-confidence secret scan.
 
 ## 14. Decision Log
 
@@ -220,6 +224,10 @@ Initial state: Not started. Complete each milestone in order and record command 
 - 2026-07-08: Security and dependency audit scripts made non-blocking (`|| true`) for foundation phase.
 - 2026-07-08: Root `package.json` includes all 6 workspace packages as `workspace:*` devDependencies.
 - 2026-07-08: E2E tests remain placeholder stubs (exit 1) — deferred to EP-005/EP-007.
+- 2026-07-09: Treat `.obsidian/` as local tooling state outside formatting enforcement; affected file: `.prettierignore`.
+- 2026-07-09: Removed non-blocking security/audit fallbacks because false-green verification conflicts with the acceptance contract; affected files: `package.json`, `COMMANDS.md`, `scripts/security-check.sh`, and `scripts/dependency-audit.sh`. The two script files are justified extras required to make the existing verification interface truthful.
+- 2026-07-09: Replaced external `pnpm dlx` security scanning with `scripts/security/local-security-scan.mjs`; the new script is a justified extra that keeps source local, ignores generated/local-tooling directories, redacts match content, and fails on high-confidence secret signatures or non-example env files.
+- 2026-07-09: Upgraded Vitest to resolved version 3.2.7 and Nest runtime/testing packages to the patched 11.1 line; added narrow `multer`, `postcss`, `qs`, and `vite` overrides. A recursive `pnpm why` isolated the remaining Vite 5 path before the final override. Affected files: root/workspace package manifests and `pnpm-lock.yaml`.
 
 ## 15. Outcomes & Retrospective
 
@@ -227,4 +235,6 @@ Initial state: Not started. Complete each milestone in order and record command 
 - Completed milestones: 5/5. Validation: `verify: ok`.
 - 60+ files created: 6 workspace packages, CI, scripts, configs, env example.
 - 23 npm audit vulnerabilities (multer via NestJS) — tracked, non-blocking.
+- 2026-07-09 audit outcome: the prior 23-vulnerability baseline was remediated by upgrading Vitest to 3.2.7, aligned Nest packages to the patched 11.1 line, and applying narrow patched transitive overrides. `pnpm audit --audit-level moderate` now reports no known vulnerabilities.
+- 2026-07-09 audit outcome: verification no longer masks scanner or registry failures, and local Obsidian state is outside formatting enforcement.
 - Next: **EP-002-core-domain.md**.

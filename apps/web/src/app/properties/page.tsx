@@ -1,19 +1,10 @@
-export default function PropertiesPage() {
-  return (
-    <div>
-      <h1>Properties</h1>
-      <p>Property search and management will appear here.</p>
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 8,
-          padding: "2rem",
-          textAlign: "center",
-          color: "#999",
-        }}
-      >
-        No properties added yet. Import a CSV or add manually to get started.
-      </div>
-    </div>
-  );
+import { PropertyListResponseSchema } from "@rei-os/contracts";
+import { PropertiesView } from "../../features/properties/properties-view";
+import { loadApiResource } from "../../lib/api-client";
+
+export const dynamic = "force-dynamic";
+
+export default async function PropertiesPage() {
+  const state = await loadApiResource("/properties?page=1&limit=20", PropertyListResponseSchema);
+  return <PropertiesView state={state} />;
 }

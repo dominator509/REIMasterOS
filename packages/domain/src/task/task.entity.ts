@@ -28,6 +28,7 @@ export function createTask(params: {
   priority?: TaskPriority;
   dueDate?: Date;
   assigneeId?: string;
+  now: Date;
 }): Task {
   if (!params.title.trim()) throw new Error("Task title is required");
   return {
@@ -40,12 +41,12 @@ export function createTask(params: {
     priority: params.priority ?? "medium",
     status: "todo",
     tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }
 
-export function completeTask(task: Task): Task {
+export function completeTask(task: Task, now: Date): Task {
   if (task.status === "done") throw new Error("Task is already done");
-  return { ...task, status: "done", completedAt: new Date(), updatedAt: new Date() };
+  return { ...task, status: "done", completedAt: now, updatedAt: now };
 }

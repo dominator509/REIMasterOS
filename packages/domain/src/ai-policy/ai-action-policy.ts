@@ -13,6 +13,8 @@ export interface AiActionPolicy {
   readonly verdict: AiActionPolicyVerdict;
   readonly requiresMfa: boolean;
   readonly requiresHumanReview: boolean;
+  readonly requiresPolicyCheck: boolean;
+  readonly requiresMcpGateway: boolean;
   readonly maxAutoTokens?: number;
 }
 
@@ -22,6 +24,8 @@ const AI_POLICY_MATRIX: Record<AiActionCategory, AiActionPolicy> = {
     verdict: "auto",
     requiresMfa: false,
     requiresHumanReview: false,
+    requiresPolicyCheck: true,
+    requiresMcpGateway: true,
     maxAutoTokens: 50_000,
   },
   draft_content: {
@@ -29,6 +33,8 @@ const AI_POLICY_MATRIX: Record<AiActionCategory, AiActionPolicy> = {
     verdict: "auto",
     requiresMfa: false,
     requiresHumanReview: true,
+    requiresPolicyCheck: true,
+    requiresMcpGateway: false,
     maxAutoTokens: 25_000,
   },
   suggest_action: {
@@ -36,6 +42,8 @@ const AI_POLICY_MATRIX: Record<AiActionCategory, AiActionPolicy> = {
     verdict: "needs_approval",
     requiresMfa: false,
     requiresHumanReview: true,
+    requiresPolicyCheck: true,
+    requiresMcpGateway: true,
     maxAutoTokens: 10_000,
   },
   modify_data: {
@@ -43,18 +51,24 @@ const AI_POLICY_MATRIX: Record<AiActionCategory, AiActionPolicy> = {
     verdict: "needs_approval",
     requiresMfa: true,
     requiresHumanReview: true,
+    requiresPolicyCheck: true,
+    requiresMcpGateway: true,
   },
   execute_action: {
     category: "execute_action",
     verdict: "needs_approval",
     requiresMfa: true,
     requiresHumanReview: true,
+    requiresPolicyCheck: true,
+    requiresMcpGateway: true,
   },
   send_communication: {
     category: "send_communication",
     verdict: "blocked",
     requiresMfa: true,
     requiresHumanReview: true,
+    requiresPolicyCheck: true,
+    requiresMcpGateway: true,
   },
 };
 
@@ -120,15 +134,6 @@ export function checkAiAction(actionDescription: string, tokenCount?: number): A
 
 /** AI outputs cannot alter authoritative values without explicit approval. */
 export function canAiModifyField(fieldName: string): boolean {
-  const authoritativeFields = [
-    "propertyAddress",
-    "ownerName",
-    "salePrice",
-    "legalDescription",
-    "parcelNumber",
-    "deedRecording",
-    "contractDate",
-    "earnestMoneyAmount",
-  ];
-  return !authoritativeFields.includes(fieldName);
+  const aiEditableFields = new Set(["notes", "tags", "draftSummary", "researchDraft"]);
+  return aiEditableFields.has(fieldName);
 }

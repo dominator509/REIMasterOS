@@ -93,6 +93,13 @@ Default local migration command after EP-003:
 pnpm db:migrate
 ```
 
+The migration runner records each applied version in `schema_migrations` and
+skips it on later runs. Local port collisions may be resolved with the
+documented `POSTGRES_HOST_PORT` override; container traffic remains on 5432.
+Before staging or production migration, complete the isolated restore
+verification procedure in `OPERATIONS.md` and attach its checksum, schema
+version, duration, and result to the release record.
+
 ## Rollback Steps
 
 Rollback details are in `ROLLBACK.md`.
@@ -121,11 +128,23 @@ Post-deploy smoke tests must verify:
 - Hidden-prefix sanitizer rejects leakage fixture.
 - No live campaign send occurs.
 
-Expected command where implemented:
+Offline safety/package smoke before deployment:
 
 ```sh
 sh scripts/smoke-test.sh
 ```
+
+Post-deploy target smoke (replace reserved domains with the explicitly approved
+target):
+
+```sh
+DEPLOYMENT_SMOKE_API_URL=https://api.rei-os.example.invalid \
+DEPLOYMENT_SMOKE_WEB_URL=https://rei-os.example.invalid \
+sh scripts/smoke-test.sh
+```
+
+The target mode performs only read-only live/readiness and web-root requests; it
+does not launch campaigns or send through providers.
 
 ## Required Approvals
 
@@ -171,29 +190,65 @@ After production deployment:
 - Confirm alerts are active.
 - Record verification outcome in release notes.
 
-## EP-010 Updates (2026-07-09)
-
-### Quick Deploy
+## Build from Source
 
 ```bash
-# Solo budget mode (minimal)
-docker compose -f infra/compose/solo-budget.yml up -d
-
-# Hybrid cheap mode (API + Web + DB + Redis)
-docker compose -f infra/compose/hybrid-cheap.yml up -d
-
-# Vendor fast mode (full services)
-docker compose -f infra/compose/vendor-fast.yml up -d
-
-# Enterprise self-hosted (with monitoring)
-docker compose -f infra/compose/enterprise-self-host.yml up -d
-```
-
-### Build from source
-
-```bash
-pnpm install
-pnpm build
-pnpm test:unit
+sh scripts/install.sh
+sh scripts/build.sh
 sh scripts/verify.sh
 ```
+
+## EP-010 Deployment Evidence Review (2026-07-19)
+
+The API and web production images were built independently and started locally as non-root
+processes during EP-009. The enterprise Helm chart was checksum-verified, linted, and rendered
+with synthetic image/Secret references. Those checks are an artifact dry run only.
+
+No staging or production environment was deployed. Kubernetes admission, immutable registry
+references, target configuration, DNS/TLS, real Secret injection, database migration, connected
+readiness, and target-aware smoke remain unproved. Production deployment was neither authorized
+nor attempted.
+
+## EP-009 Compose Profile Contract (2026-07-18)
+
+Compose files are deployment templates, not proof of a running environment:
+
+- `solo-budget.yml` starts PostgreSQL and Redis for the default local core. `full-data`, `app`, `local-ai`, and `observability` profiles opt into MinIO/OpenSearch, API/web, a local LLM sidecar, and the monitoring skeleton. No paid provider is required. Local data-service credentials are synthetic defaults and must never be reused outside local development.
+- `hybrid-cheap.yml` builds API/web with self-hosted PostgreSQL/Redis and an optional `local-ai` profile. Staging URLs, CORS, database/Redis passwords, session secret, and encryption key are required from a non-committed environment source.
+- `vendor-fast.yml` enables self-hosted data services and accepts optional SMTP/provider variables. Missing vendor credentials leave provider paths disabled/manual; they are not launch prerequisites for core CRM behavior.
+- `enterprise-self-host.yml` consumes immutable API/web image references and owner-supplied secrets. Infrastructure image variables may use local defaults for template evaluation, but release owners must replace mutable tags with approved tags or digests before staging/production.
+
+The repository has no worker or AI-gateway runtime directories, so these profiles do not fabricate containers for them. The local LLM entry is an optional sidecar only and does not enable the application AI route. Production deployment, migration, secret creation, DNS/TLS, provider enablement, and live outreach remain explicit owner actions and STOP conditions.
+
+The default local data command remains:
+
+```sh
+pnpm db:setup
+```
+
+Opt-in application and observability profiles require a non-committed Compose environment file with the documented values before use. EP-009 validates profile structure and images but does not execute `up`, migrate a database, or deploy any target.
+
+## EP-009 Helm Chart Contract (2026-07-18)
+
+`infra/helm` is the optional enterprise self-host chart. Budget and solo users do
+not need Kubernetes. The chart renders only the API and web runtimes that exist in
+this repository and provides:
+
+- deployments and ClusterIP services with non-root, read-only-root-filesystem
+  security contexts and bounded resource requests/limits;
+- API liveness and readiness probes at `/health/live` and `/health/ready`;
+- a ConfigMap containing documented non-secret runtime configuration;
+- references to an operator-created Secret for `DATABASE_URL`,
+  `SESSION_SECRET`, and `ENCRYPTION_KEY`—never literal secret values;
+- an optional ingress with separate web and API hosts;
+- required image tags or digests instead of a deployable `latest` default.
+
+The `workers.enabled` value defaults to `false` and deliberately fails rendering
+when enabled because there is no worker runtime to package. PostgreSQL, Redis,
+object storage, search, local AI, TLS/certificates, DNS, Secret creation,
+migrations, backups, and observability backends remain operator-owned platform
+dependencies. Run the Helm lint/template commands in `COMMANDS.md` before staging.
+Helm was not installed system-wide on the EP-009 audit host. A checksum-verified
+temporary Helm v3.20.2 binary linted the chart and rendered API/web manifests with
+synthetic references; the repository readiness script separately validates chart
+structure. Kubernetes admission and staging rollout remain unproved.

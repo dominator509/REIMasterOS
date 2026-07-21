@@ -33,24 +33,32 @@ export function createContactPoint(params: {
   type: ContactPointType;
   value: string;
 }): ContactPoint {
+  const value = params.value.trim();
+  if (!value) throw new Error("Contact point value is required");
+  if (params.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value)) {
+    throw new Error("Invalid email contact point");
+  }
+  if (params.type === "phone" && !/^\+?[\d().\s-]{7,20}$/u.test(value)) {
+    throw new Error("Invalid phone contact point");
+  }
   return {
     type: params.type,
-    value: params.value,
+    value,
     status: "unverified",
   };
 }
 
-export function createEmptyConsent(): ConsentState {
+export function createEmptyConsent(now: Date): ConsentState {
   return {
     canEmail: false,
     canCall: false,
     canText: false,
     canDirectMail: false,
     callRecordingConsent: false,
-    lastUpdated: new Date(),
+    lastUpdated: now,
   };
 }
 
-export function markContactPointOptedOut(cp: ContactPoint): ContactPoint {
-  return { ...cp, status: "opted_out", optedOutAt: new Date() };
+export function markContactPointOptedOut(cp: ContactPoint, now: Date): ContactPoint {
+  return { ...cp, status: "opted_out", optedOutAt: now };
 }

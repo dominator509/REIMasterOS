@@ -22,6 +22,7 @@ export function createOwner(params: {
   name: string;
   entityType?: OwnerEntityType;
   mailingAddress?: Address;
+  now: Date;
 }): Owner {
   if (!params.name.trim()) throw new Error("Owner name is required");
   return {
@@ -32,7 +33,7 @@ export function createOwner(params: {
     mailingAddress: params.mailingAddress,
     propertiesOwned: 0,
     tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }

@@ -11,20 +11,29 @@
     "typecheck": "turbo typecheck",
     "test:unit": "turbo test:unit",
     "test:integration": "turbo test:integration",
-    "test:e2e": "turbo test:e2e",
+    "test:e2e": "turbo test:e2e --filter=@rei-os/web",
     "build": "turbo build",
-    "security:check": "pnpm dlx secretlint \"**/*\" && pnpm dlx semgrep ci --config auto || true",
+    "security:check": "node scripts/security/local-security-scan.mjs",
     "audit:deps": "pnpm audit --audit-level moderate",
     "smoke": "tsx scripts/smoke/local-smoke.ts",
     "verify": "sh scripts/verify.sh",
     "db:setup": "docker compose -f infra/compose/solo-budget.yml up -d postgres redis minio opensearch",
-    "db:migrate": "pnpm --filter @rei-os/api db:migrate"
+    "db:setup:postgres": "docker compose -f infra/compose/solo-budget.yml up -d postgres",
+    "db:migrate": "pnpm --filter @rei-os/persistence db:migrate"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "overrides": {
+      "multer@<2.2.0": "2.2.0",
+      "postcss@<8.5.10": "8.5.10",
+      "qs@>=6.11.1 <=6.15.1": "6.15.2",
+      "vite@<=6.4.2": "6.4.3"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@rei-os/api": "workspace:*",

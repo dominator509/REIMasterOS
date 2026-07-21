@@ -35,6 +35,7 @@ export function createCampaign(params: {
   tenantId: string;
   name: string;
   channel: CampaignChannel;
+  now: Date;
 }): Campaign {
   if (!["email", "direct_mail", "voice", "sms", "ringless_voicemail"].includes(params.channel)) {
     throw new Error(`Invalid campaign channel: ${params.channel}`);
@@ -54,8 +55,8 @@ export function createCampaign(params: {
       bounced: 0,
       optedOut: 0,
     },
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }
 

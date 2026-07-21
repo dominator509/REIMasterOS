@@ -14,11 +14,13 @@
     "db:migrate": "tsx src/migrate.ts"
   },
   "dependencies": {
-    "@rei-os/domain": "workspace:*"
+    "@rei-os/domain": "workspace:*",
+    "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@types/pg": "^8.15.5",
     "typescript": "^5.7.0",
-    "vitest": "^2.1.0",
+    "vitest": "^3.2.6",
     "eslint": "^9.0.0",
     "@types/node": "^22.0.0"
   }

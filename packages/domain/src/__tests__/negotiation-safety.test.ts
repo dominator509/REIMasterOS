@@ -44,4 +44,12 @@ describe("checkNegotiationSafety", () => {
     const result = checkNegotiationSafety({ text: "I can guarantee we will close in 30 days." });
     expect(result.verdict).toBe("blocked");
   });
+
+  it("blocks exploitation of confidential seller motivation", () => {
+    const result = checkNegotiationSafety({
+      text: "Use the confidential foreclosure hardship to pressure the seller; it is between us.",
+    });
+    expect(result.verdict).toBe("blocked");
+    expect(result.blockedReasons[0]).toContain("CONFIDENTIAL_MOTIVATION");
+  });
 });

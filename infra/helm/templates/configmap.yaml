@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rei-os.fullname" . }}-config
+  labels:
+    {{- include "rei-os.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+  APP_ENV: {{ .Values.config.appEnv | quote }}
+  APP_BASE_URL: {{ required "config.appBaseUrl is required" .Values.config.appBaseUrl | quote }}
+  API_BASE_URL: {{ required "config.apiBaseUrl is required" .Values.config.apiBaseUrl | quote }}
+  CORS_ALLOWED_ORIGINS: {{ required "config.corsAllowedOrigins is required" .Values.config.corsAllowedOrigins | quote }}
+  AUTH_PROVIDER: {{ .Values.config.authProvider | quote }}
+  SEARCH_PROVIDER: {{ .Values.config.searchProvider | quote }}
+  OBJECT_STORAGE_PROVIDER: {{ .Values.config.objectStorageProvider | quote }}
+  OBJECT_STORAGE_BUCKET: {{ .Values.config.objectStorageBucket | quote }}
+  {{- with .Values.config.otelExporterOtlpEndpoint }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ . | quote }}
+  {{- end }}

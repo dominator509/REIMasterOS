@@ -25,17 +25,41 @@ export class AuditService {
   }
 }
 
-const SENSITIVE_KEYS = ["password", "secret", "token", "ssn", "credit_card", "dni", "passport"];
+const SENSITIVE_KEYS = [
+  "password",
+  "secret",
+  "token",
+  "ssn",
+  "credit_card",
+  "dnc",
+  "passport",
+  "hidden_prefix",
+  "compiled_prompt",
+  "provider_payload",
+  "authorization",
+  "cookie",
+  "api_key",
+  "mfa_code",
+  "email",
+  "phone",
+  "address",
+];
 
-function redactSensitive(metadata: Record<string, unknown>): Record<string, unknown> {
+function redactValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((item) => redactValue(item));
+  if (typeof value === "object" && value !== null) {
+    return redactSensitive(value as Record<string, unknown>);
+  }
+  return value;
+}
+
+export function redactSensitive(metadata: Record<string, unknown>): Record<string, unknown> {
   const redacted: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(metadata)) {
     if (SENSITIVE_KEYS.some((k) => key.toLowerCase().includes(k))) {
       redacted[key] = "[REDACTED]";
-    } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      redacted[key] = redactSensitive(value as Record<string, unknown>);
     } else {
-      redacted[key] = value;
+      redacted[key] = redactValue(value);
     }
   }
   return redacted;

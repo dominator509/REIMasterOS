@@ -2,162 +2,56 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  install:
-    name: Install & Cache
+  verify:
+    name: Full verification
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
+      - run: sh scripts/verify.sh
 
-  lint:
-    name: Lint
-    needs: install
+  images:
+    name: Build and scan images
+    needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - name: Build API image
+        run: docker build --target api-runtime --tag rei-os-api:${{ github.sha }} .
+      - name: Build web image
+        run: docker build --file apps/web/Dockerfile --target web-runtime --tag rei-os-web:${{ github.sha }} .
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          version: 9
-      - uses: actions/setup-node@v4
+          image-ref: rei-os-api:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+      - name: Scan web image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-
-  format:
-    name: Format Check
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-
-  typecheck:
-    name: Type Check
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-
-  unit:
-    name: Unit Tests
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test:unit
-
-  integration:
-    name: Integration Tests
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test:integration
-
-  build:
-    name: Build
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-
-  audit:
-    name: Security Audit
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm audit:deps || true
-
-  smoke:
-    name: Smoke Test
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm smoke || true
+          image-ref: rei-os-web:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false

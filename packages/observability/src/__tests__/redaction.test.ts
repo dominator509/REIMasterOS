@@ -4,7 +4,7 @@ import { redact, hasDncData, sanitizeForLogging } from "../redaction.js";
 describe("redact", () => {
   it("redacts password fields", () => {
     const result = redact({ email: "user@test.com", password: "secret123" });
-    expect(result.email).toBe("user@test.com");
+    expect(result.email).toBe("[REDACTED]");
     expect(result.password).toBe("[REDACTED]");
   });
 
@@ -16,7 +16,7 @@ describe("redact", () => {
 
   it("redacts nested sensitive fields", () => {
     const result = redact({ user: { credentials: { password: "secret" } } });
-    expect((result.user as any).credentials.password).toBe("[REDACTED]");
+    expect(result.user).toEqual({ credentials: { password: "[REDACTED]" } });
   });
 
   it("redacts database URLs", () => {
@@ -26,7 +26,7 @@ describe("redact", () => {
 
   it("handles arrays with sensitive data", () => {
     const result = redact({ users: [{ password: "a" }, { password: "b" }] });
-    expect((result.users as any)[0].password).toBe("[REDACTED]");
+    expect(result.users).toEqual([{ password: "[REDACTED]" }, { password: "[REDACTED]" }]);
   });
 });
 
@@ -45,7 +45,15 @@ describe("sanitizeForLogging", () => {
     expect(() => sanitizeForLogging({ dnc: true })).toThrow("DNC data must not be logged");
   });
   it("redacts sensitive fields", () => {
-    const result = sanitizeForLogging({ user: "test", token: "abc" });
+    const result = sanitizeForLogging({
+      user: "test",
+      token: "abc",
+      nested: { compiled_prompt: "private", provider_payload: "private" },
+    });
     expect(result.token).toBe("[REDACTED]");
+    expect(result.nested).toEqual({
+      compiled_prompt: "[REDACTED]",
+      provider_payload: "[REDACTED]",
+    });
   });
 });

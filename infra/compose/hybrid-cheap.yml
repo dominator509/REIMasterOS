@@ -1,41 +1,79 @@
+# Staging/hybrid profile: self-hosted core with optional local AI; paid providers remain optional.
 name: rei-os-hybrid
+
 services:
   postgres:
     image: postgis/postgis:16-3.4
     environment:
       POSTGRES_DB: rei_os
       POSTGRES_USER: rei
-      POSTGRES_PASSWORD: rei
-    ports: ["5432:5432"]
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?set DB_PASSWORD}"
     volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rei -d rei_os"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -a "$$REDIS_PASSWORD" ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?set REDIS_PASSWORD}"
 
   api:
     build:
       context: ../..
       dockerfile: Dockerfile
-    ports: ["3001:3001"]
+      target: api-runtime
     environment:
       NODE_ENV: production
       APP_ENV: staging
-      DATABASE_URL: postgresql://rei:rei@postgres:5432/rei_os
-      REDIS_URL: redis://redis:6379/0
+      API_PORT: "3001"
+      APP_BASE_URL: "${APP_BASE_URL:?set APP_BASE_URL}"
+      API_BASE_URL: "${API_BASE_URL:?set API_BASE_URL}"
+      DATABASE_URL: "postgresql://rei:${DB_PASSWORD:?set DB_PASSWORD}@postgres:5432/rei_os"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379/0"
       SEARCH_PROVIDER: disabled
       OBJECT_STORAGE_PROVIDER: local
-    depends_on: [postgres, redis]
+      AUTH_PROVIDER: built-in
+      SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET}"
+      ENCRYPTION_KEY: "${ENCRYPTION_KEY:?set ENCRYPTION_KEY}"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:?set CORS_ALLOWED_ORIGINS}"
+    ports: ["3001:3001"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   web:
     build:
       context: ../..
       dockerfile: apps/web/Dockerfile
-    ports: ["3000:3000"]
     environment:
       NODE_ENV: production
       API_BASE_URL: http://api:3001
-    depends_on: [api]
+    ports: ["3000:3000"]
+    depends_on:
+      api:
+        condition: service_healthy
+
+  local-llm:
+    profiles: [local-ai]
+    image: "${LOCAL_LLM_IMAGE:-ollama/ollama:latest}"
+    volumes: [local_llm_data:/root/.ollama]
 
 volumes:
   pgdata:
+  local_llm_data:

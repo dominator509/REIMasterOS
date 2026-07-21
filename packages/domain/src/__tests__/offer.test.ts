@@ -3,6 +3,7 @@ import { createOffer, submitOffer } from "../offer/offer.entity.js";
 import { usd } from "../value-objects/money.js";
 
 describe("Offer", () => {
+  const now = new Date("2026-07-09T12:00:00.000Z");
   const terms = {
     dueDiligenceDays: 7,
     closingDays: 30,
@@ -20,6 +21,7 @@ describe("Offer", () => {
       offerType: "cash",
       terms,
       submittedBy: "u-1",
+      now,
     });
     expect(o.status).toBe("draft");
   });
@@ -34,6 +36,7 @@ describe("Offer", () => {
         offerType: "cash",
         terms,
         submittedBy: "u-1",
+        now,
       }),
     ).toThrow();
   });
@@ -47,8 +50,9 @@ describe("Offer", () => {
       offerType: "cash",
       terms,
       submittedBy: "u-1",
+      now,
     });
-    const submitted = submitOffer(o);
+    const submitted = submitOffer(o, now);
     expect(submitted.status).toBe("submitted");
   });
 });

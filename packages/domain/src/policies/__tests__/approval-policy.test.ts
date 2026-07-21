@@ -17,8 +17,8 @@ describe("needsApproval", () => {
   it("needs approval for contract execution", () => {
     expect(needsApproval("contract_execution")).toBe(true);
   });
-  it("auto-approves small offers", () => {
-    expect(needsApproval("binding_offer_submission", 50_000_00)).toBe(false);
+  it("requires approval for binding offers at every amount", () => {
+    expect(needsApproval("binding_offer_submission", 50_000_00)).toBe(true);
   });
   it("needs approval for large offers", () => {
     expect(needsApproval("binding_offer_submission", 200_000_00)).toBe(true);

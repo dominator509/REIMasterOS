@@ -35,6 +35,14 @@ export interface DealBreakdown {
  * MAO = ARV - Repairs - Holding Costs - Closing Costs - Agent Fees - Target Profit
  */
 export function calculateDeal(params: DealAssumptions): DealResult {
+  for (const [name, value] of [
+    ["holdingMonths", params.holdingMonths],
+    ["closingCostsPercent", params.closingCostsPercent],
+    ["agentFeesPercent", params.agentFeesPercent],
+    ["targetProfitPercent", params.targetProfitPercent],
+  ] as const) {
+    if (!Number.isFinite(value) || value < 0) throw new Error(`${name} must be non-negative`);
+  }
   const arv = params.afterRepairValue;
   const repairs = params.repairCosts;
   const holdingCosts = multiplyMoney(params.holdingCostsMonthly, params.holdingMonths);
@@ -81,6 +89,9 @@ export function createOfferLadder(params: {
 }): OfferLadder {
   const targetPercent = params.targetPercent ?? 85;
   const openingPercent = params.openingPercent ?? 70;
+  if (openingPercent < 0 || targetPercent < openingPercent || targetPercent > 100) {
+    throw new Error("Offer ladder percentages must satisfy 0 <= opening <= target <= 100");
+  }
   return {
     opening: multiplyMoney(params.maxAllowable, openingPercent / 100),
     target: multiplyMoney(params.maxAllowable, targetPercent / 100),

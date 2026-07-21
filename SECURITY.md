@@ -50,38 +50,19 @@ Rules:
   - Purchase agreement sends.
   - Changes to offer price, contingencies, close date, or seller credits.
 
+Implemented EP-006 baseline:
+
+- Built-in sessions are HMAC-signed, `HttpOnly`, `SameSite=Strict`, absolute-expiring, and idle-expiring. Staging/production cookies are also `Secure`.
+- Every session creation produces a separate double-submit CSRF value; the readable CSRF cookie contains no session credential.
+- Staging/production startup rejects placeholder signing/encryption secrets and local/wildcard CORS origins.
+- High-risk actions require both session MFA and a current tenant/action-matched approval. Approvals expire after 15 minutes by default.
+- The runtime step-up verifier is deny-all until an owner configures a real adapter; the deterministic adapter is test/local-only.
+
 ## Authorization Rules
 
 RBAC must include tenant, team, role, permission, and integration scope.
 
-Required baseline permissions:
-
-- `tenant.read`
-- `tenant.admin`
-- `property.read`
-- `property.write`
-- `lead_list.read`
-- `lead_list.write`
-- `contact.read`
-- `contact.write`
-- `campaign.read`
-- `campaign.write`
-- `campaign.launch`
-- `communication.read`
-- `communication.send_email`
-- `communication.send_direct_mail`
-- `communication.call`
-- `communication.sms`
-- `compliance.read_verdict`
-- `compliance.manage_suppression`
-- `offer.read`
-- `offer.write`
-- `offer.approve_binding`
-- `ai.chat`
-- `ai.tool_use`
-- `ai.high_risk_approve`
-- `provider_credentials.manage`
-- `audit.read`
+Implemented baseline permission constants are defined once in `packages/domain/src/permissions/permissions.ts`: property/contact/lead read-write-delete/import, campaign read-create-launch, task read-write, offer create-submit, compliance read-override, approval read-grant, provider manage, AI query/action, admin access, and import/export. Roles are `admin`, `manager`, `member`, `viewer`, and `agent`; unknown roles and permissions deny by default.
 
 Rules:
 
@@ -164,6 +145,10 @@ Rules:
 - Review license obligations before commercial distribution.
 - GPL/AGPL/copyleft services are optional sidecars unless legal review approves bundling.
 - Do not bundle/fork/modify RTK until ADR-approved license/provenance review exists.
+- The persistence package uses the MIT-licensed `pg` client behind `DbConnection`;
+  repositories use parameterized values and fixed, code-owned table/column names.
+- Production PostgreSQL connections must enable verified TLS. Database URLs and
+  credential payloads remain secret and must never appear in logs or test output.
 
 ## Logging Redaction Rules
 
@@ -244,6 +229,8 @@ Allowed log identifiers:
 - Do not allow wildcard CORS with credentials.
 - Session expiration and refresh behavior must be tested.
 
+EP-006 enforces double-submit CSRF checks for state-changing cookie-authenticated API requests. Credentialed CORS uses only the typed `CORS_ALLOWED_ORIGINS` allowlist. The API emits deny-by-default CSP/frame/content-type/referrer/permissions/cross-origin/cache headers, and emits HSTS only in staging/production.
+
 ## Rate Limiting and Abuse Prevention
 
 Rate limit:
@@ -267,6 +254,8 @@ Abuse controls:
 - Cost alerts.
 - Worker backpressure.
 - Fraud/spam detection for outreach channels.
+
+EP-006 provides a single-process baseline limiter for auth, import/export, AI, campaign, and webhook routes with stable `RATE_LIMITED` errors and standard rate-limit response headers. It is intentionally not a distributed quota system; multi-instance production requires a shared store in a later operations plan.
 
 ## File Upload Rules
 
@@ -308,6 +297,29 @@ Abuse controls:
 - [ ] Rate limits in place.
 - [ ] Retention policies documented.
 - [ ] Third-party notices generated before commercial release.
+
+## EP-010 Security and Privacy Evidence Review (2026-07-19)
+
+This review separates repository-local controls from target-environment proof. A passing local
+scan does not prove that an unconfigured production runtime is secure.
+
+| Gate                                       | Repository evidence                                                                                                                                 | Status       | Launch implication                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------- |
+| Committed secrets                          | `scripts/security/local-security-scan.mjs` completed without findings; `.env.local` is absent                                                       | PASS (local) | Re-run in CI and against the release commit                                                   |
+| Dependencies                               | `scripts/dependency-audit.sh` reported no known vulnerabilities                                                                                     | PASS (local) | Re-run for the release artifact                                                               |
+| Tenant isolation                           | Domain, persistence, API, search, storage, and provider-contract tests reject cross-tenant access                                                   | PASS (local) | A connected multi-tenant database/runtime test is still required                              |
+| DNC and compliance                         | Deterministic policy tests cover `allowed`, `blocked`, and `needs_approval`; DNC adapters expose suppression verdicts rather than raw registry data | PASS (local) | Live provider/compliance configuration remains owner-controlled                               |
+| Hidden-prefix and sensitive-log protection | Buffered sanitizer, UI regression, structured-log, tracing, and redaction tests pass                                                                | PASS (local) | Hosted model traffic has not been exercised                                                   |
+| Authentication, RBAC, and approvals        | Built-in session, deny-by-default RBAC, CSRF, headers, and approval tests pass                                                                      | PARTIAL      | Identity/session/audit state is process-local and the production step-up verifier is deny-all |
+| Provider credentials                       | Schema and repository contracts accept encrypted bytes and exclude payloads from metadata reads                                                     | PARTIAL      | No runtime encryption/secret-store integration proves secure credential lifecycle             |
+| Webhook signatures                         | The boundary rejects unsigned/unverified input and hashes accepted payloads                                                                         | PARTIAL      | Runtime verifier is intentionally deny-all; provider-specific verification is not configured  |
+| Hosted AI privacy                          | Hosted AI is optional and user-visible output is buffered/sanitized                                                                                 | PARTIAL      | No hosted gateway is configured, so payload minimization has no target evidence               |
+| Retention                                  | Required data classes and operational expectations are documented                                                                                   | BLOCKED      | Configurable retention enforcement and deletion evidence are absent                           |
+| Artifact/container scanning                | CI pins a container scanner and builds both images                                                                                                  | PARTIAL      | No current remote CI run or signed release-artifact scan is available                         |
+| License obligations                        | Dependency policy is documented                                                                                                                     | BLOCKED      | SBOM, third-party notices, and commercial license review are absent                           |
+
+There are no formally accepted security risks in repository evidence: no named launch approver,
+acceptance date, and mitigation record exists. Partial and blocked gates remain launch blockers.
 
 ## STOP Conditions for Security-Sensitive Actions
 

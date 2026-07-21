@@ -28,6 +28,22 @@ describe("AuditService", () => {
     });
     const entries = svc.getEntries("t-1");
     expect(entries[0]?.metadata.password).toBe("[REDACTED]");
-    expect(entries[0]?.metadata.email).toBe("user@test.com");
+    expect(entries[0]?.metadata.email).toBe("[REDACTED]");
+  });
+
+  it("redacts nested sensitive values inside arrays", () => {
+    const svc = new AuditService();
+    svc.log({
+      timestamp: new Date().toISOString(),
+      action: "provider.failure",
+      actorId: "u-1",
+      tenantId: "t-1",
+      targetType: "provider",
+      targetId: "smtp",
+      metadata: { attempts: [{ authorization: "Bearer secret", safe: "visible" }] },
+    });
+    expect(svc.getEntries("t-1")[0]?.metadata).toEqual({
+      attempts: [{ authorization: "[REDACTED]", safe: "visible" }],
+    });
   });
 });

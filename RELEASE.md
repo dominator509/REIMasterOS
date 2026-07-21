@@ -36,20 +36,13 @@ Every release candidate must include:
 - Known risks.
 - Third-party/license notes.
 
-## Branch Strategy
+## Source-Control Gate
 
-Default branch: `main`.
-
-Recommended flow:
-
-1. Feature branch per ExecPlan.
-2. Pull request with ExecPlan link.
-3. CI verification.
-4. Review.
-5. Merge to `main`.
-6. Release branch/tag for release candidate.
-
-Coding agents must not invent branch names or merge strategies if repository policy differs; update this file from repository evidence.
+This checkout is currently on local branch `master` and has no configured Git
+remote. No protected default branch, pull request policy, release tag, registry,
+or publishing authority can be inferred. A release owner must configure and
+verify those controls before publication. Coding agents must not invent a remote,
+branch, tag, registry, or credentials.
 
 ## Release Candidate Criteria
 
@@ -62,6 +55,8 @@ A release candidate requires:
 - Migration plan documented.
 - Deployment notes documented.
 - Rollback plan documented.
+- Immutable API and web image references selected.
+- Registry publication path and provenance owner confirmed.
 - Staging deploy ready.
 
 ## Release Checklist
@@ -83,13 +78,23 @@ A release candidate requires:
 
 ## Smoke Tests
 
-Run after staging and production deploys:
+Run the offline safety/package smoke before creating artifacts:
 
 ```sh
 sh scripts/smoke-test.sh
 ```
 
-Smoke tests must not send live outreach by default.
+After an authorized staging or production deployment, run the target-aware mode:
+
+```sh
+DEPLOYMENT_SMOKE_API_URL=https://api.rei-os.example.invalid \
+DEPLOYMENT_SMOKE_WEB_URL=https://rei-os.example.invalid \
+sh scripts/smoke-test.sh
+```
+
+Target-aware smoke checks only web reachability and API live/readiness endpoints.
+It never sends outreach. Replace the reserved example domains with the approved
+target; a non-ready dependency fails the release check.
 
 ## Approvals
 
@@ -131,20 +136,56 @@ Monitor for at least the defined release window:
 - Tenant isolation alerts.
 - Smoke test failures.
 
-## EP-010 Release Notes (v0.0.0)
+## EP-010 Launch Evidence Review (2026-07-19)
 
-### Artifacts
+Repository verification and local artifact checks pass. This checkout still has no Git remote,
+protected release workflow, registry/publishing authority, immutable published artifacts,
+release version/changelog, SBOM, notices bundle, staging deployment, target smoke, monitoring
+window, rollback drill, or explicit production approval. The release decision is **NO-GO**.
 
-- `Dockerfile` — API service container
-- `apps/web/Dockerfile` — Web dashboard container
-- `infra/compose/` — 4 deployment profiles
-- `infra/helm/` — Kubernetes skeleton
-- `.github/workflows/ci.yml` — CI pipeline
+## EP-009 Release Candidate Procedure
 
-### Verification
+1. Confirm all active ExecPlans for the intended release are complete and review
+   the working tree for unrelated or sensitive files.
+2. Select a semantic pre-release version and create the required changelog,
+   migration, third-party/license, and rollback notes. This repository does not
+   yet contain a changelog, SBOM, or notices bundle; do not claim those artifacts.
+3. Run the repository gates independently so a later command cannot mask an
+   earlier failure:
 
-```bash
-sh scripts/verify.sh  # Full pipeline
-pnpm smoke            # Smoke test
-sh scripts/production-readiness-check.sh  # Readiness audit
-```
+   ```sh
+   sh scripts/verify.sh
+   sh scripts/production-readiness-check.sh
+   docker build --target api-runtime --tag rei-os-api:local .
+   docker build --file apps/web/Dockerfile --target web-runtime --tag rei-os-web:local .
+   ```
+
+4. Let CI rebuild and scan both images. The current workflow does not publish
+   images; registry selection, authentication, signing, SBOM generation, and push
+   remain release-owner work.
+5. Record the content digests of the approved API and web images. Staging and
+   production configuration must use immutable digests or reviewed immutable
+   tags—not `latest`.
+6. Complete the isolated backup/restore verification in `OPERATIONS.md` and
+   attach its checksum, schema version, duration, and result before any migration.
+7. If Kubernetes is the selected staging target, run both Helm commands in
+   `COMMANDS.md` using synthetic references first, then repeat with approved
+   Secret and immutable image references. Helm rendering was not available on the
+   EP-009 audit host.
+8. Obtain staging authority, deploy through the environment owner's established
+   mechanism, run the target-aware smoke command, inspect observability, and
+   conduct the rollback drill in `ROLLBACK.md`.
+9. Production migration/deployment requires a separate explicit approval after
+   the staging evidence is accepted. Never reuse staging or synthetic secrets.
+
+## Current EP-009 Release Status (2026-07-18)
+
+- Local API and web images: built successfully as unprivileged Node images.
+- Repository verification/readiness: milestone checks and final EP-009 full
+  verification passed on 2026-07-19.
+- Image scan: configured in CI and pinned to a reviewed action commit; no registry
+  publication is configured.
+- Staging/production: not deployed.
+- Release blockers: no remote/registry/publishing authority, changelog, SBOM or
+  notices bundle, verified staging restore/deploy/smoke/rollback evidence, or
+  explicit production approval.

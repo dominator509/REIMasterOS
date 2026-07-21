@@ -194,26 +194,52 @@ General recovery:
 
 ## 12. Progress
 
-Initial state: Not started. Execute after release-scope implementation plans are complete.
+Initial state: Completed after the release-scope implementation plans.
 
-- [ ] Milestone 1: Run full verification and classify failures — validation `sh scripts/verify.sh` passed and result recorded.
-- [ ] Milestone 2: Complete security and privacy review — validation `sh scripts/security-check.sh && sh scripts/dependency-audit.sh` passed and result recorded.
-- [ ] Milestone 3: Complete performance, accessibility, and observability review — validation `sh scripts/production-readiness-check.sh` passed and result recorded.
-- [ ] Milestone 4: Verify backup/restore, deployment dry run, and rollback drill — validation `sh scripts/smoke-test.sh` passed and result recorded.
-- [ ] Milestone 5: Final launch gate and retrospective — validation `git diff --name-only` passed and result recorded.
+- [x] Milestone 1: Run full verification and classify failures — fresh post-preflight `sh scripts/verify.sh` passed on 2026-07-19: lint, format, typecheck, unit/integration, production build, 18 E2E tests, security scan, zero known dependency vulnerabilities, and 8 smoke checks. The opt-in live PostgreSQL test remained skipped because no target database was authorized/configured.
+- [x] Milestone 2: Complete security and privacy review — on 2026-07-19 the secret-pattern scan passed and the dependency audit reported zero known vulnerabilities. Local tests prove tenant isolation, deterministic compliance/DNC suppression, log redaction, and hidden-prefix buffering; runtime credential encryption, provider webhook verification, retention enforcement, hosted-AI payload minimization, and release-artifact scanning remain unproved launch gates.
+- [x] Milestone 3: Complete performance, accessibility, and observability review — on 2026-07-19 the repository-artifact readiness script passed. Structured logging, redaction, health projections, metric contracts, telemetry helpers, dashboards, and alerts have local/structural evidence; no runtime exporter, connected dependency probes, measured performance workload, deployed monitoring path, or real-browser accessibility audit exists.
+- [x] Milestone 4: Verify backup/restore, deployment dry run, and rollback drill — on 2026-07-19 the eight offline safety/package smoke checks passed. EP-009 provides local non-root image startup and checksum-verified Helm lint/render evidence, but no staging target, backup archive/restore verification, target-aware smoke, published digest pair, or rollback drill exists; these remain launch blockers.
+- [x] Milestone 5: Final launch gate and retrospective — the final diff was reviewed on 2026-07-19. EP-010 changed its expected documentation/plan files; the wider diff contains completed EP-001 through EP-009 work, while the three pre-existing user-owned `.obsidian` changes remain untouched. Final decision: NO-GO for production.
 
 ## 13. Surprises & Discoveries
 
 - 2026-07-07: In a greenfield blueprint-only repository, this plan will identify many blockers; create follow-up ExecPlans rather than guessing.
+- 2026-07-19: The existing dated readiness report was materially stale: it claimed 8/10 readiness, no blockers, placeholder E2E coverage, 23 vulnerabilities, and obsolete package counts. Current verification contradicts those details, while several external/runtime gates remain genuinely unproved. EP-010 will replace the report with an evidence matrix and explicit no-go status.
+- 2026-07-19: Security controls divide into locally proved behavior and unconfigured production integrations. In particular, webhook verification and step-up authentication fail closed, while credential storage has an encrypted-byte repository contract but no runtime encryption service; these are safe defaults, not production-readiness evidence.
 
 ## 14. Decision Log
 
 - 2026-07-07: Production deployment requires explicit permission and is not included by default.
+- 2026-07-19: A passing secret/dependency scan will be reported as local evidence only. Missing runtime integrations and owner-controlled environment proof remain blockers; no accepted-risk owner or date will be invented.
+- 2026-07-19: The repository patch helper repeatedly failed before reading files with `CreateProcessWithLogonW failed: 5`. Guarded exact Node replacements were used for documentation-only edits, and Prettier plus the full verifier validated the results.
+- 2026-07-19: Metrics, dashboards, alerts, SLO targets, and render-level accessibility checks are structural/local evidence. Without runtime exporters, representative workloads, a deployed target, and real-browser/manual accessibility evidence, they remain partial or blocked launch gates.
+- 2026-07-19: Production readiness uses evidence tiers: local behavior, artifact/structural validation, connected-runtime proof, and explicit launch approval. Passing a lower tier cannot promote a higher-tier gate.
+- 2026-07-19: EP-009 image startup and Helm lint/render are sufficient artifact dry-run evidence, but not deployment, backup/restore, target-smoke, or rollback-drill evidence. The audit will keep those operational gates blocked rather than create environment records without authority.
+- 2026-07-19: The final foreground verifier wrappers were interrupted by desktop permission-review/tool-output behavior, not a repository failure. A hidden detached runner captured the exact command to `C:\\tmp`, exited 0, and ended with `verify: ok`; temporary logs are outside the repository.
 
 ## 15. Outcomes & Retrospective
 
-- Status: Not started.
-- Completed milestones: None yet.
-- Validation summary: Not run yet.
-- Changed files summary: Not reviewed yet.
-- Remaining risks: Execute milestones and update this section before final response.
+- Status: Completed on 2026-07-19 with an evidence-based NO-GO launch decision.
+- Completed milestones: All five milestones completed in order.
+- Validation summary: Final detached `sh scripts/verify.sh` exited 0 and printed
+  `verify: ok`; lint, format, typecheck, unit/integration tests, build, 18 E2E
+  acceptance tests, security scan, dependency audit with zero known vulnerabilities,
+  and 8 offline smoke checks passed. The repository-artifact readiness check passed.
+  The opt-in live PostgreSQL test was skipped because no target database was configured.
+- Changed files summary: EP-010 changed only its expected readiness/security/observability/testing/
+  deployment/operations/release/rollback/decision documents. The wider working tree contains the
+  completed EP-001 through EP-009 implementation and plan changes. The three `.obsidian` files
+  were pre-existing user changes and were preserved without modification by this audit.
+- Decisions: Evidence is classified as local, artifact/structural, connected-runtime, or launch
+  approval. Lower-tier success does not satisfy a higher-tier gate, and no generic team label is
+  treated as accepted-risk ownership.
+- Assumptions: Core CRM and local/manual paths remain provider-agnostic; missing worker, AI
+  gateway, provider, and production services fail closed or remain disabled. No remote,
+  production target, deployment authority, credentials, or live data was assumed.
+- Remaining risks: Durable persistence/identity/session/audit, real MFA and credential encryption,
+  provider webhook verification, retention enforcement, runtime observability, measured
+  performance, browser/manual accessibility, backup/restore, staging smoke/rollback, SBOM/notices,
+  release governance, operational ownership, and explicit launch approval remain blockers.
+- Production readiness: Failed. The repository is a green local implementation and
+  release-artifact baseline, not an approved production deployment.

@@ -42,6 +42,8 @@ LLM gateway must include:
 
 Do not log hidden prefix text or raw prompts in ordinary logs.
 
+EP-006 records built-in login success/failure, invalid authentication context, approval lifecycle, authorization denials, and rate-limit denials in the tenant-scoped audit service. Failed-login identifiers are SHA-256 hashes; passwords, tokens, cookies, CSRF/MFA values, and request bodies are never included.
+
 ## Redaction Rules
 
 Redact:
@@ -54,6 +56,8 @@ Redact:
 - Raw provider payloads unless stored in secure tenant-scoped object storage.
 - Hidden prefixes and compiled prompts.
 - Payment/billing sensitive fields.
+
+The EP-006 recursive redactor applies these rules to nested objects and arrays and additionally removes authorization headers, cookies, API keys, email addresses, phone numbers, and postal-address fields. This in-memory audit baseline is covered by regression tests but is not durable production audit storage.
 
 ## Metrics
 
@@ -256,3 +260,38 @@ Observability is acceptable when:
 - Dashboards exist or are specified.
 - Alerts exist or are specified.
 - Smoke tests verify observability-critical paths.
+
+## EP-010 Performance, Accessibility, and Observability Evidence Review (2026-07-19)
+
+| Gate                             | Evidence                                                                                                                 | Status       | Launch implication                                                                                                                         |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Structured logging and redaction | Package and API regression tests cover required context, recursive redaction, raw-DNC rejection, and safe error handling | PASS (local) | Durable log transport and target access controls are not configured                                                                        |
+| Health endpoints                 | Liveness, readiness, and sanitized dependency projections have tests                                                     | PARTIAL      | Dependency probes report configuration state; they do not establish database, queue, search, storage, worker, AI, or provider connectivity |
+| Metrics and traces               | Stable bounded metric contracts, runtime helper logic, and in-memory/no-op collectors are tested                         | PARTIAL      | The application graph has no production exporter/registry binding, so deployed telemetry is not proved                                     |
+| Dashboards and alerts            | OTel, Prometheus, Grafana, and alert artifacts pass structural readiness checks                                          | PARTIAL      | No collector scrape, rule evaluation, notification delivery, retention, or monitoring owner is proved                                      |
+| Search and worker performance    | Required SLIs and target categories are documented                                                                       | BLOCKED      | No search/worker runtime or representative load benchmark exists                                                                           |
+| Voice performance                | Required latency metric and target category are documented                                                               | BLOCKED      | Voice is disabled and no enabled-path measurement exists                                                                                   |
+| LLM/cache performance            | Provider-separated cache metric contracts and the 97% eligible-workflow targets are documented                           | BLOCKED      | No gateway or measured eligible warm workload exists; the targets are not achieved evidence                                                |
+| Production smoke/uptime          | Target-aware GET-only smoke support exists                                                                               | BLOCKED      | No staging/production URL or post-deploy observation was provided                                                                          |
+
+The monitoring files are deployable skeletons, not a running observability system. Production
+readiness requires target evidence and named operational ownership.
+
+## Implemented Baseline (EP-008)
+
+The local baseline is exporter-neutral and self-hostable:
+
+- `StructuredLogger` requires service, environment, version, operation, status, and request/job correlation. It accepts event names rather than free text, recursively redacts sensitive context, drops exception messages, and replaces raw-DNC payloads with a blocked marker.
+- `/health/live` reports process state. `/health/ready` fails closed when the required database probe is unavailable. `/health/dependencies` reports database, Redis, search, storage, workers, AI gateway, compliance provider, and adapters without returning URLs, credentials, or vendor payloads.
+- `InMemoryMetricsCollector` and `InMemoryTracer` provide deterministic local/test evidence. `NoopMetricsCollector` and `NoopTracer` are the disabled-exporter defaults. No runtime OTLP exporter is enabled merely by these interfaces.
+- The OTel, Prometheus, Grafana, and alert files are provisioning skeletons. They are validated structurally by `sh scripts/production-readiness-check.sh`; they are not evidence that a collector or dashboard is deployed.
+
+Stable metric names are:
+
+- API/security: `rei_api_requests_total`, `rei_api_errors_total`, `rei_api_request_duration_ms`, `rei_auth_failures_total`, `rei_rate_limit_denials_total`, `rei_tenant_scope_denials_total`.
+- Compliance/campaign/workers: `rei_compliance_verdicts_total`, `rei_compliance_block_reasons_total`, `rei_campaign_events_total`, `rei_worker_jobs_total`, `rei_worker_queue_depth`, `rei_worker_queue_age_seconds`.
+- Providers/cost: `rei_provider_calls_total`, `rei_provider_call_duration_ms`, `rei_provider_cost_estimate_usd`, `rei_manual_fallback_total`.
+- Search/import/voice: `rei_search_query_duration_ms`, `rei_search_results`, `rei_search_projection_lag_seconds`, `rei_property_imports_total`, `rei_voice_events_total`, `rei_voice_event_duration_ms`.
+- AI/cache/safety: `rei_ai_requests_total`, `rei_ai_request_duration_ms`, `rei_ai_cache_requests_total`, `rei_ai_cache_tokens_total`, `rei_ai_prefix_drift_total`, `rei_ai_sanitizer_blocks_total`.
+
+Metric labels are bounded enums, route patterns, provider/model identifiers, status codes, or reason codes. Raw URLs, emails, phone numbers, addresses, tenant payloads, prompts, and arbitrary label keys are rejected. Hermes and DeepSeek cache metrics use the same names with distinct `provider` labels and must be queried separately.

@@ -1,24 +1,89 @@
-replicaCount: 1
-image:
-  repository: rei-os/api
-  tag: latest
-  pullPolicy: IfNotPresent
-service:
-  type: ClusterIP
-  port: 3001
+nameOverride: ""
+fullnameOverride: ""
+
+api:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: rei-os/api
+    tag: ""
+    digest: ""
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3001
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+web:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: rei-os/web
+    tag: ""
+    digest: ""
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# No worker runtime exists in this repository. The chart rejects enabled=true
+# until a later ExecPlan supplies and validates that runtime.
+workers:
+  enabled: false
+
+config:
+  nodeEnv: production
+  appEnv: production
+  appBaseUrl: ""
+  apiBaseUrl: ""
+  corsAllowedOrigins: ""
+  authProvider: built-in
+  searchProvider: disabled
+  objectStorageProvider: local
+  objectStorageBucket: rei-os
+  otelExporterOtlpEndpoint: ""
+
+# The named Secret is created and rotated outside this chart. Literal secret
+# values never belong in values files or release commands.
+secretRef:
+  name: ""
+  keys:
+    databaseUrl: DATABASE_URL
+    sessionSecret: SESSION_SECRET
+    encryptionKey: ENCRYPTION_KEY
+
 ingress:
   enabled: false
-resources:
-  limits:
-    memory: 512Mi
-  requests:
-    memory: 256Mi
-env:
-  NODE_ENV: production
-  APP_ENV: production
-  SEARCH_PROVIDER: disabled
-  OBJECT_STORAGE_PROVIDER: local
-secrets:
-  databaseUrl: ""
-  sessionSecret: ""
-  encryptionKey: ""
+  className: ""
+  annotations: {}
+  webHost: rei-os.example.invalid
+  apiHost: api.rei-os.example.invalid
+  tls: []
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true

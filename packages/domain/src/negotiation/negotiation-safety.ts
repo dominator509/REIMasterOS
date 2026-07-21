@@ -68,6 +68,15 @@ export function checkNegotiationSafety(message: NegotiationMessage): Negotiation
     blocked.push("UNAUTHORIZED_COMMITMENT: binding commitments require authorization");
   }
 
+  if (
+    /\b(confidential|private|do not share|between us)\b.*\b(divorce|foreclosure|bankruptcy|illness|death|financial hardship)\b/iu.test(
+      lower,
+    ) &&
+    /\b(leverage|pressure|use against|exploit)\b/iu.test(lower)
+  ) {
+    blocked.push("CONFIDENTIAL_MOTIVATION: confidential seller motivation must not be exploited");
+  }
+
   // Blocked: impersonation
   if (
     /\b(speaking on behalf of|representing the owner|power of attorney)\b/i.test(lower) &&

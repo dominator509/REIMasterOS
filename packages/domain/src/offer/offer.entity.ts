@@ -46,6 +46,7 @@ export function createOffer(params: {
   offerType: OfferType;
   terms: OfferTerms;
   submittedBy: string;
+  now: Date;
 }): Offer {
   if (params.amount.amountCents <= 0) throw new Error("Offer amount must be positive");
   if (params.terms.closingDays < 1) throw new Error("Closing days must be at least 1");
@@ -59,13 +60,13 @@ export function createOffer(params: {
     terms: params.terms,
     status: "draft",
     submittedBy: params.submittedBy as UserId,
-    submittedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    submittedAt: params.now,
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }
 
-export function submitOffer(offer: Offer): Offer {
+export function submitOffer(offer: Offer, now: Date): Offer {
   if (offer.status !== "draft") throw new Error("Only draft offers can be submitted");
-  return { ...offer, status: "submitted", submittedAt: new Date(), updatedAt: new Date() };
+  return { ...offer, status: "submitted", submittedAt: now, updatedAt: now };
 }

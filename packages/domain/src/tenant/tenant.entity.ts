@@ -6,11 +6,11 @@ export interface Tenant {
   readonly updatedAt: Date;
 }
 
-export function createTenant(params: { id: string; name: string }): Tenant {
+export function createTenant(params: { id: string; name: string; now: Date }): Tenant {
   return {
     id: params.id,
     name: params.name,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: params.now,
+    updatedAt: params.now,
   };
 }
