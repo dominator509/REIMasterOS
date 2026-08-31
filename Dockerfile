@@ -13,6 +13,11 @@ ENV NODE_ENV=production
 ENV API_PORT=3001
 WORKDIR /app
 COPY --from=api-build --chown=node:node /opt/rei-os-api ./
+# The pinned base image may lag the Alpine security repository. Refresh runtime
+# packages at build time, and remove npm from the production image because the
+# API only executes Node and does not need the package manager.
+RUN apk upgrade --no-cache \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 USER node
 EXPOSE 3001
 CMD ["node", "dist/main.js"]

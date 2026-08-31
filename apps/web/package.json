@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@rei-os/contracts": "workspace:*",
-    "next": "^15.1.0",
+    "next": "^15.5.21",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -24,6 +24,6 @@
     "typescript": "^5.7.0",
     "vitest": "^3.2.6",
     "eslint": "^9.0.0",
-    "eslint-config-next": "^15.1.0"
+    "eslint-config-next": "^15.5.21"
   }
 }
