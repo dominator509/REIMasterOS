@@ -14,6 +14,10 @@ ENV PORT=3000
 WORKDIR /app
 COPY --from=web-build --chown=node:node /workspace/apps/web/.next/standalone ./
 COPY --from=web-build --chown=node:node /workspace/apps/web/.next/static ./apps/web/.next/static
+# Refresh the pinned Alpine runtime packages and omit npm from the production
+# image; the standalone Next server only needs the Node runtime.
+RUN apk upgrade --no-cache \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 USER node
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]
